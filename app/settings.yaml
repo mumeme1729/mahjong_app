@@ -1,0 +1,23 @@
+db:
+  DB_USER: postgres
+  DB_PASSWORD: postgres
+  DB_HOST: db
+  DB_NAME: db
+  DB_PORT: 5432
+
+fastapi:
+  pelion:
+    headers: {'Authorization':'Bearer ak_2MDE3OGYzYWM4NWM2M2UwNmYwODE1N2RhMDAwMDAwMDA017a84cc60dc06ed95ab7f5600000000wMxfUXGOu4JI3nmJwVuhgISopSoSFKxD'}
+  
+  token:
+    ACCESS_TOKEN_EXPIRE_MINUTES: 10080
+
+  password:
+    SECRET_KEY: "85f4b5b7bcd7cd20c1d5638e21ae1f1ccfb0f80a0a61b6edda2b8c61d4b6e964"
+    ALGORITHM: "HS256"
+  
+  logging:
+    log_filename: "%Y%m%d"
+    level: DEBUG
+    format: "%(asctime)s.%(msecs)03d[%(levelname)-7s]:%(name)s(%(funcName)s[%(lineno)s]) %(message)s"
+    datefmt: "%Y/%m/%d %H:%M:%S"

@@ -1,0 +1,39 @@
+version:  "3.3"
+
+services: 
+    fastapi:
+        build: ./docker/api
+        container_name: "fastapi_container"
+        volumes: 
+            - ./app:/usr/src/server/app
+            - ./logs:/usr/src/logs/
+            - ./scripts:/usr/src/scripts
+        depends_on: 
+            - "db"
+        working_dir: /usr/src/scripts
+        command: bash -c "./run.sh"
+        ports: 
+            - "8000:8000"
+        networks: 
+            - local-net
+    
+    db:
+        build: ./docker/db
+        container_name: "db_container"
+        restart: always
+        tty: true
+        environment: 
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: db
+        volumes:
+            - ./docker/db/initdb.d:/docker-entrypoint-initdb.d
+            - ./logs/db:/var/log/postgresql/
+        ports:
+            - '5432:5432'
+        networks: 
+            - local-net
+
+networks:
+    local-net:
+        driver: bridge 
