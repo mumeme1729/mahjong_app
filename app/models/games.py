@@ -9,27 +9,18 @@ from uuid import uuid4
 from db import Base
 from db import ENGINE
 
-class GroupsTable(Base):
+class GamesTable(Base):
     """
-    グループテーブル
+    対局テーブル
     """
-    __tablename__ = 'groups'
+    __tablename__ = 'games'
     id = Column(UUIDType(binary=False),primary_key=True,default=uuid4)
-    title = Column(String(30),nullable=False)
-    password = Column(String(255),nullable=False)
-    text = Column(String(255))
-    image = Column(String(255))
     created_at = Column(TIMESTAMP,nullable=False)
     update_at = Column(TIMESTAMP,nullable=False)
+    is_sanma = Column(Boolean,nullable=False, default=False)
 
     # リレーション設定
-    users = relationship(
-        'UserTable',
-        secondary= user_group_map_table,
-        back_populates='groups'
-    )
-
-    games = relationship("GamesTable", backref="groups")
+    group_id = Column(UUIDType(binary=False), ForeignKey('groups.id'))
 
     
 def main():

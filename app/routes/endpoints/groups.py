@@ -32,7 +32,7 @@ async def create_group(group:GroupCreate,db:Session = Depends(get_db),current_us
     """
     グループを作成する
     """
-
+    _logger.info("Create group by {current_user.email}")
     #作成者をグループ作成時に追加する
     user = UserInDBBase(
         id = current_user.id,
@@ -43,7 +43,7 @@ async def create_group(group:GroupCreate,db:Session = Depends(get_db),current_us
     res = set_group(group,user,db)
     return res
 
-@router.put("join_group")
+@router.put("/join_group")
 def put_join_group(group_id:UUID,password:str,db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
     """
     グループに参加する

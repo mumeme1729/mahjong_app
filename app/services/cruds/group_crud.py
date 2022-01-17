@@ -14,7 +14,7 @@ from services.cruds.user_crud import get_user_by_id
 from schemas.user import UserInDBBase
 from models.groups import GroupsTable
 from services.logs.set_logs import set_logger
-from fastapi import HTTPException
+from fastapi import HTTPException,status
 from utils import errors
 from schemas.group import Group
 from datetime import datetime, timedelta
@@ -55,22 +55,34 @@ def join_group(group_id:UUID,password:str,user_id:UUID,db:Session):
     if target_group:
         # passwordチェック
         if target_group.password != password:
-            return "no match password"
+            return HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Password does not match",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         # 既に参加しているかどうかチェック
         user = get_user_by_id(user_id,db)
         if user in target_group.users:
-            return "already joined"
+            return HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="already joined this group",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         # グループに参加させる
         target_group.users.append(user)
         db.commit()
         return target_group
     else:
-        return "no group"
+        return HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Group does not exist",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
 #GET(idより)
 def get_group_by_id(group_id:UUID,db:Session)-> GroupsTable:
     """
-    idを複数受け取り、それに一致するグループをすべて返す
+    idを複数受け取り、それに一致するグループを返す
     """
     return db.query(GroupsTable).options(joinedload(GroupsTable.users)).filter(GroupsTable.id == group_id).first()
 
@@ -79,6 +91,6 @@ def get_all_groups(db:Session)->List[GroupsTable]:
     """
     すべてのグループを返す
     """
-    groups = db.query(GroupsTable).options(joinedload(GroupsTable.users)).all()
+    groups = db.query(GroupsTable).options(joinedload(GroupsTable.users)).options(joinedload(GroupsTable.games)).all()
     return groups
 

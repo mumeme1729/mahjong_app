@@ -1,12 +1,6 @@
 from uuid import UUID
-from sqlalchemy.sql.sqltypes import TIMESTAMP
-from sqlalchemy.sql.type_api import UserDefinedType
-from sqlalchemy.orm import Session
-from sqlalchemy_utils import UUIDType
-from pydantic import BaseModel,EmailStr
+from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime
-from models.groups import GroupsTable
 
 
 class GroupBase(BaseModel):

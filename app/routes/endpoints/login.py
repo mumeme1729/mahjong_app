@@ -8,7 +8,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException,status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from schemas.token import Token
+from schemas.token import Token,LoginInfo
 from schemas.user import UserCreate
 
 from services.cruds.user_crud import get_all_users,get_user_by_email, set_user
@@ -46,20 +46,19 @@ async def create_character(user_data:UserCreate,db:Session = Depends(get_db)):
     
 
 @router.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),db:Session = Depends(get_db)) -> dict:
+async def login_for_access_token(form_data: LoginInfo,db:Session = Depends(get_db)) -> dict:
     """
     ログイン認証が完了したらJWTを返す。
     """
     try:
         #DBからフォームに入力されたユーザー名のユーザーを取り出す。
-        user_data = get_user_by_email(form_data.username,db)
-        print(f"{user_data.email} {user_data.hashed_password}")
+        user_data = get_user_by_email(form_data.email,db)
         user = authenticate_user(user_data,form_data.password)
         if not user:
-            _logger.warning(f"login: {form_data.username}[ Failure ]")
+            _logger.warning(f"login: {form_data.email}[ Failure ]")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect username or password",
+                detail="Incorrect email or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
             
@@ -68,8 +67,9 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         access_token = create_access_token(
             token_payload={"sub": user.email},expires_delta=access_token_expires
         )
-        _logger.info(f"login: {form_data.username} [ Success ]")
+        _logger.info(f"login: {form_data.email} [ Success ]")
         return {"access_token": access_token, "token_type": "bearer"}
+
 
     except requests.exceptions.RequestException as e:
         _logger.exception(e)

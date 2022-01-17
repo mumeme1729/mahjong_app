@@ -40,6 +40,7 @@ async def get_current_user(token: str = Depends(_oauth2_scheme),db:Session = Dep
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
     try:
         # jwtをデコードする。
         payload = jwt.decode(token, _secret_key, algorithms=[_algorithm])
