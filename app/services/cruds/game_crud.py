@@ -7,7 +7,7 @@ from models.games import GamesTable
 from schemas.user import UserInDBBase
 from schemas.game import GameCreate
 
-def set_game(game_data:GameCreate,user:UserInDBBase,db:Session)->dict:
+def set_game(game_data:GameCreate,db:Session)->dict:
     """
     gameを作成してDBに格納する
     """
@@ -15,7 +15,6 @@ def set_game(game_data:GameCreate,user:UserInDBBase,db:Session)->dict:
     dt.strftime("%Y/%m/%d %H:%M:%S")
 
     game = GamesTable(
-    
         created_at = dt,
         update_at = dt,
         is_sanma = game_data.is_sanma,

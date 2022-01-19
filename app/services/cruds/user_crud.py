@@ -36,7 +36,9 @@ def set_user(obj_in:UserCreate,db:Session)->dict:
             email = obj_in.email,
             hashed_password = get_password_hash(obj_in.password),
             is_active = obj_in.is_active,
-            created_at = dt
+            created_at = dt,
+            nick_name = None,
+            image = None
     )
     
     db.add(user)
@@ -72,13 +74,13 @@ def get_user_by_email(email: str,db: Session) -> Optional[UserTable]:
         """
         指定したemailを持つユーザーを取得
         """
-        return db.query(UserTable).filter(UserTable.email == email).options(joinedload(UserTable.groups)).first()
+        return db.query(UserTable).filter(UserTable.email == email).options(joinedload(UserTable.profiles)).first()
 
 def get_all_users(db:Session) ->List[UserTable]:
         """
         登録されている全てのユーザーを取得
         """
-        users = db.query(UserTable).options(joinedload(UserTable.groups)).all()
+        users = db.query(UserTable).options(joinedload(UserTable.profiles)).all()
 
         return users
 
@@ -86,4 +88,4 @@ def get_user_by_id(id: str,db: Session) -> Optional[UserTable]:
         """
         指定したidを持つユーザーを取得
         """
-        return db.query(UserTable).filter(UserTable.id == id).options(joinedload(UserTable.groups)).first()
+        return db.query(UserTable).filter(UserTable.id == id).options(joinedload(UserTable.profiles)).first()

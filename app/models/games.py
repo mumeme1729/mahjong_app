@@ -3,7 +3,6 @@ from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy_utils import UUIDType
 from sqlalchemy.orm import relationship
 #from models.user_group_maps import UserGroupMapTable
-from models.user_group_maps import user_group_map_table
 from uuid import uuid4
 
 from db import Base

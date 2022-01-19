@@ -3,7 +3,7 @@ from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy_utils import UUIDType
 from sqlalchemy.orm import relationship
 #from models.user_group_maps import UserGroupMapTable
-from models.user_group_maps import user_group_map_table
+#from models.profile_group_maps import profile_group_map_table
 from uuid import uuid4
 
 from db import Base
@@ -23,13 +23,14 @@ class GroupsTable(Base):
     update_at = Column(TIMESTAMP,nullable=False)
 
     # リレーション設定
-    users = relationship(
-        'UserTable',
-        secondary= user_group_map_table,
-        back_populates='groups'
-    )
+    # profiles = relationship(
+    #     'ProfileTable',
+    #     secondary= profile_group_map_table,
+    #     back_populates='groups'
+    # )
 
     games = relationship("GamesTable", backref="groups")
+    profiles = relationship("ProfileTable", backref="groups")
 
     
 def main():
