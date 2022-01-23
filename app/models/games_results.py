@@ -8,21 +8,21 @@ from uuid import uuid4
 from db import Base
 from db import ENGINE
 
-class GamesTable(Base):
+class GameResultTable(Base):
     """
-    対局テーブル
+    対局結果テーブル
     """
-    __tablename__ = 'games'
+    __tablename__ = 'gameresults'
     id = Column(UUIDType(binary=False),primary_key=True,default=uuid4)
     created_at = Column(TIMESTAMP,nullable=False)
     update_at = Column(TIMESTAMP,nullable=False)
-    is_sanma = Column(Boolean,nullable=False, default=False)
+    rank = Column(Integer,nullable=False)
+    score = Column(Integer,nullable=False)
     
     # リレーション設定
-    group_id = Column(UUIDType(binary=False), ForeignKey('groups.id'))
-    creater = Column(UUIDType(binary=False), ForeignKey('profiles.id'))
-    updater = Column(UUIDType(binary=False), ForeignKey('profiles.id'))
-    game_results = relationship("GameResultTable", backref="games",cascade='all, delete-orphan')
+    game = Column(UUIDType(binary=False), ForeignKey('games.id'))
+    profile = Column(UUIDType(binary=False), ForeignKey('profiles.id'))
+
     
 def main():
     # テーブルが存在しなければ、テーブルを作成

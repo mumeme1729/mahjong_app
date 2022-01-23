@@ -29,9 +29,8 @@ class ProfileTable(Base):
     #     back_populates='profiles'
     # )
     group = Column(UUIDType(binary=False), ForeignKey('groups.id'))
-
-    # user
     user = Column(UUIDType(binary=False), ForeignKey('users.id'))
+    game_results = relationship("GameResultTable", backref="profiles")
     
 def main():
     # テーブルが存在しなければ、テーブルを作成

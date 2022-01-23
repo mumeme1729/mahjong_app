@@ -4,11 +4,12 @@ userのCRUD処理を実装
 """
 
 from typing import List,Any,Dict,Optional,Union
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload,contains_eager
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy import and_
 from models.groups import GroupsTable
+from models.profiles import ProfileTable
 from schemas.group import Group
 from schemas.user import UserCreate, UserUpdate
 from services.authenticates.hash_and_verify_the_password import get_password_hash
@@ -81,7 +82,6 @@ def get_all_users(db:Session) ->List[UserTable]:
         登録されている全てのユーザーを取得
         """
         users = db.query(UserTable).options(joinedload(UserTable.profiles)).all()
-
         return users
 
 def get_user_by_id(id: str,db: Session) -> Optional[UserTable]:

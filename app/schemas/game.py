@@ -1,3 +1,4 @@
+from schemas.game_result import GameResultCreate
 from pydantic import BaseModel
 from typing import List, Optional
 from uuid import UUID
@@ -14,7 +15,9 @@ class GameCreate(GameBase):
     """
     group_id: UUID
     is_sanma: bool
-    pass
+    game_results:List[GameResultCreate]
+
+    
 
 class Game(GameBase):
     id: Optional[UUID] = None

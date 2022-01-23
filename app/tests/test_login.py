@@ -10,7 +10,7 @@ def test_get_token():
     response = client.post(
         "/api/token", 
         json={
-              "email": "test@example.com",
+              "email": "testuser@example.com",
               "password" : "testpass",
         }
     )

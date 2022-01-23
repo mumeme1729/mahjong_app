@@ -5,6 +5,7 @@ import logging
 import requests
 
 from datetime import datetime, timedelta
+from services.cruds.group_crud import leave_group
 from fastapi import APIRouter, Body, Depends, HTTPException,status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -50,7 +51,7 @@ async def create_group(group:GroupCreate,db:Session = Depends(get_db),current_us
                 detail="Cloud not create user profile",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-    return {}
+    return group_id
     
 
 @router.put("/join_group")
@@ -61,6 +62,13 @@ def put_join_group(group_id:UUID,password:str,db:Session = Depends(get_db),curre
     res = join_group(group_id,password,current_user.id,db)
     return res
 
+@router.put("/leave_group")
+def put_leave_group(group_id:UUID,db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
+    """
+    グループから離脱する
+    """
+    res = leave_group(group_id,current_user.id,db)
+    return res
 
 @router.get("/all_groups")
 def read_groups(db:Session = Depends(get_db)) -> Any:
@@ -69,3 +77,4 @@ def read_groups(db:Session = Depends(get_db)) -> Any:
     """
     groups = get_all_groups(db)
     return groups
+

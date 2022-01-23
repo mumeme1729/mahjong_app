@@ -27,7 +27,22 @@ def set_profile(user:User,group_id:UUID,db:Session):
     db.add(profile)
     db.commit()
     return profile.id
-    
+
+def activate_profile(profile:ProfileTable,db:Session)->UUID:
+    """
+    対象のプロフィールを有効化(グループに参加)
+    """
+    profile.is_active = True
+    db.commit()
+    return profile
+
+def dis_activate_profile(profile:ProfileTable,db:Session)->UUID:
+    """
+    対象のプロフィールを非アクティブ化(グループ離脱)
+    """
+    profile.is_active = False
+    db.commit()
+    return profile
 
 def get_profile_by_user_id(user_id:UUID,db:Session)-> List[ProfileTable]:
     """
