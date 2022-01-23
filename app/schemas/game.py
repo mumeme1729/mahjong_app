@@ -17,6 +17,16 @@ class GameCreate(GameBase):
     is_sanma: bool
     game_results:List[GameResultCreate]
 
+class GameUpdata(GameBase):
+    """
+    Gameアップデート時のschema
+    """
+    id: Optional[UUID] = None
+    group_id: UUID
+    is_sanma: bool
+    game_results:List[GameResultCreate]
+
+
     
 
 class Game(GameBase):

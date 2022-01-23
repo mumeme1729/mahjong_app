@@ -3,12 +3,15 @@ from typing import Any
 from uuid import UUID
 import yaml
 
+from services.cruds.game_crud import update_game_and_result
+from schemas.game import GameUpdata
+
 from fastapi import APIRouter, Depends,HTTPException,status
 from sqlalchemy.orm import Session
 
-from schemas.game import GameCreate,Game
+from schemas.game import GameCreate
 from schemas.user import User
-from schemas.game_result import GameResultCreate
+
 
 from services.cruds.group_crud import get_group_by_id
 from services.cruds.game_result_crud import set_game_result
@@ -116,4 +119,28 @@ def get_game(game_id:UUID,db:Session = Depends(get_db),current_user: User = Depe
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"{e}",
+        )
+
+@router.put("/update_game")
+def update_game(game_data:GameUpdata,db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
+    # グループのチェック
+    group = get_group_by_id(game_data.group_id,db)
+    # グループが存在しない場合はBAD_REQUEST
+    if not group:
+        _logger.warning(f"Group does not exist. : {game_data.group_id}")
+        raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Group does not exist.",
+        )
+    # プロフィールを取得
+    profile = get_profile_by_user_and_group(current_user.id,group.id,db)
+    if profile is not None:
+        # アップデートを行う
+        res = update_game_and_result(game_data,profile,db)
+        return res       
+    _logger.warning(f" this user doesn't belong to this group.")
+    raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="don't belong to this group",
+            headers={"WWW-Authenticate": "Bearer"},
         )
