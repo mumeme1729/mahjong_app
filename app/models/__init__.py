@@ -1,4 +1,7 @@
 from db import Base,ENGINE
 from .users import UserTable
 from .groups import GroupsTable
-from .user_group_maps import user_group_map_table
+from .games import GamesTable
+from .profiles import ProfileTable
+from .games_results import GameResultTable
+# from .profile_group_maps import profile_group_map_table

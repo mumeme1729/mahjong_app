@@ -1,13 +1,9 @@
 from uuid import UUID
-from sqlalchemy.sql.sqltypes import TIMESTAMP
-from sqlalchemy.sql.type_api import UserDefinedType
-from sqlalchemy.orm import Session
-from schemas.group import Group
-from sqlalchemy_utils import UUIDType
 from pydantic import BaseModel,EmailStr
 from typing import Optional,List
-from datetime import datetime
-from models.users import UserTable
+
+from schemas.profile import Profile
+
 
 class UserBase(BaseModel):
     """
@@ -28,6 +24,9 @@ class UserUpdate(UserBase):
     UPDATE時のschema
     """
     password: Optional[str] = None
+    nick_name: Optional[str] = None
+    image: Optional[str] = None
+
 
 class UserInDBBase(UserBase):
     id: Optional[UUID] = None
@@ -39,8 +38,9 @@ class User(UserInDBBase):
     """
     API経由時に追加するプロパティ
     """
-
-    groups: List[Group]
+    profiles: List[Profile]
+    nick_name: Optional[str] = None
+    image: Optional[str] = None
 
 class UserInDB(UserInDBBase):
     """

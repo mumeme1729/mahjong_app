@@ -12,6 +12,7 @@ services:
             - "db"
         working_dir: /usr/src/scripts
         command: bash -c "./run.sh"
+        # stdin_open: true
         ports: 
             - "8000:8000"
         networks: 

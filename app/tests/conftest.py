@@ -1,7 +1,7 @@
 # import pytest
 # from sqlalchemy import create_engine
 # from sqlalchemy.orm import sessionmaker
-# from sqlalchemy_utils import database_exists, drop_database
+# from sqlalchemy_utils import database_exists, drop_database,create_database
 # from db import Base
 
 # @pytest.fixture(scope="function")
@@ -15,6 +15,9 @@
 #     # DBの設定
 #     TEST_SQLALCHEMY_DATABASE_URL = "postgresql://postgres:postgres@db:5432/test_db"
 #     engine = create_engine(TEST_SQLALCHEMY_DATABASE_URL,encoding="utf-8",echo=True)
+
+#     if not database_exists(engine.url):
+#         create_database(engine.url)
 
 #     assert not database_exists(TEST_SQLALCHEMY_DATABASE_URL), "Test database already exists. Aborting tests."
 

@@ -1,5 +1,5 @@
-import os
 import yaml
+from models import profiles
 from services.cruds.user_crud import get_user_by_email
 from fastapi import Depends,HTTPException,status
 from jose import JWTError, jwt
@@ -7,7 +7,6 @@ from typing import Optional #指定の型 or None を許容する場合に使用
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-from models.users import UserTable
 from schemas.user import User
 from db import get_db
 from services.logs.set_logs import set_logger
@@ -40,6 +39,7 @@ async def get_current_user(token: str = Depends(_oauth2_scheme),db:Session = Dep
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
     try:
         # jwtをデコードする。
         payload = jwt.decode(token, _secret_key, algorithms=[_algorithm])
@@ -59,7 +59,9 @@ async def get_current_user(token: str = Depends(_oauth2_scheme),db:Session = Dep
             id = user_data.id,
             email = user_data.email,
             is_active = user_data.is_active,
-            groups = user_data.groups
+            profiles = user_data.profiles,
+            nick_name = user_data.nick_name,
+            image = user_data.image
     )
     if user is None:
         _logger.warning(credentials_exception)

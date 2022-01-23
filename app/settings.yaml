@@ -10,7 +10,7 @@ fastapi:
     headers: {'Authorization':'Bearer ak_2MDE3OGYzYWM4NWM2M2UwNmYwODE1N2RhMDAwMDAwMDA017a84cc60dc06ed95ab7f5600000000wMxfUXGOu4JI3nmJwVuhgISopSoSFKxD'}
   
   token:
-    ACCESS_TOKEN_EXPIRE_MINUTES: 10080
+    ACCESS_TOKEN_EXPIRE_MINUTES: 1008000
 
   password:
     SECRET_KEY: "85f4b5b7bcd7cd20c1d5638e21ae1f1ccfb0f80a0a61b6edda2b8c61d4b6e964"
