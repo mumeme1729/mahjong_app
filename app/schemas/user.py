@@ -1,8 +1,10 @@
 from uuid import UUID
+from models.profiles import ProfileTable
 from pydantic import BaseModel,EmailStr
 from typing import Optional,List
 
 from schemas.profile import Profile
+from models.users import UserTable
 
 
 class UserBase(BaseModel):
@@ -47,6 +49,9 @@ class UserInDB(UserInDBBase):
     DB保存時に追加するプロパティ
     """
     hashed_password:str
+
+
+
 
 
 

@@ -18,6 +18,7 @@ with open('settings.yaml', 'r') as yml:
 
 _secret_key = settings['fastapi']['password']['SECRET_KEY']
 _algorithm = settings['fastapi']['password']['ALGORITHM']
+
 _oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # ロガーの設定
