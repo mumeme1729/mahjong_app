@@ -1,4 +1,5 @@
 from uuid import UUID
+from xmlrpc.client import boolean
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -29,3 +30,4 @@ class Profile(ProfileInDBBase):
     API経由時に追加するプロパティ
     """
     pass
+

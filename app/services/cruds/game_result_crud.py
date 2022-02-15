@@ -25,3 +25,4 @@ def set_game_result(game_id:UUID,game_result_data:GameResultCreate,db:Session)->
     db.add(result)
     db.commit()
     return result.id
+
