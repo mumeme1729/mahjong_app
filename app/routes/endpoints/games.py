@@ -37,7 +37,7 @@ async def create_game(game_data:GameCreate,db:Session = Depends(get_db),current_
     """
     対局テーブルを作成する
     """
-    _logger.info(f"get current user : {current_user.email}")
+    _logger.info(f"get current user : {current_user.id}")
     # グループのチェック
     group = get_group_by_id(game_data.group_id,db)
     # グループが存在しない場合はBAD_REQUEST

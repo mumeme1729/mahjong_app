@@ -14,25 +14,11 @@ def test_create_user_success():
     response = client.post(
         "/api/register", 
         json={
-              "email": "testuser@example.com",
+              "firebase_uid": "cC6ZHDOvkYVZQcE1RMNVlTQV73X2",
               "is_active": True,
-              "password" : "testpass",
         }
     )
     assert response.status_code == 200 or response.status_code == 400
-
-def test_create_user_without_password():
-    """
-    Userを追加 成功パターン
-    """
-    response = client.post(
-        "/api/register", 
-        json={
-              "email": "test2@example.com",
-              "is_active": True,
-        }
-    )
-    assert response.status_code == 422
 
 
 ############### テスト用ユーザーを追加 ######################
@@ -43,9 +29,8 @@ def test_create_user2():
     response = client.post(
         "/api/register", 
         json={
-              "email": "testuser2@example.com",
+              "firebase_uid": "a16p2KHhEtZpyl97lby47SV6vCJ3",
               "is_active": True,
-              "password" : "testpass",
         }
     )
     assert response.status_code == 200 or response.status_code == 400
@@ -57,9 +42,8 @@ def test_create_user3():
     response = client.post(
         "/api/register", 
         json={
-              "email": "testuser3@example.com",
+              "firebase_uid": "sxTyPwmzutQU8BZl5kWwAvvUxMf2",
               "is_active": True,
-              "password" : "testpass",
         }
     )
     assert response.status_code == 200 or response.status_code == 400
@@ -71,9 +55,8 @@ def test_create_user4():
     response = client.post(
         "/api/register", 
         json={
-              "email": "testuser4@example.com",
+              "firebase_uid": "RCCgsrBowWSP2Kn1ukAKLcQPtPx2",
               "is_active": True,
-              "password" : "testpass",
         }
     )
     assert response.status_code == 200 or response.status_code == 400
@@ -86,9 +69,8 @@ def test_create_user5():
     response = client.post(
         "/api/register", 
         json={
-              "email": "testuser5@example.com",
+              "firebase_uid": "qB9j8qN3VvQ0E1QgjMyIg7Y8ARw2",
               "is_active": True,
-              "password" : "testpass",
         }
     )
     assert response.status_code == 200 or response.status_code == 400
@@ -100,9 +82,21 @@ def test_create_user6():
     response = client.post(
         "/api/register", 
         json={
-              "email": "testuser6@example.com",
+              "firebase_uid": "sKKq16dhYKNA14ns03oCYQnR7mP2",
               "is_active": True,
-              "password" : "testpass",
+        }
+    )
+    assert response.status_code == 200 or response.status_code == 400
+
+def test_create_user7():
+    """
+    Userを追加 成功パターン
+    """
+    response = client.post(
+        "/api/register", 
+        json={
+              "firebase_uid": "5JklJinhpYbNVhJR2mFqnKoWDtg1",
+              "is_active": True,
         }
     )
     assert response.status_code == 200 or response.status_code == 400

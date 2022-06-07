@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import HTTPException,status
 from jose import JWTError, jwt
+
+
 from services.logs.set_logs import set_logger
 # 設定ファイルを読み込む
 with open('settings.yaml', 'r') as yml:
@@ -12,8 +14,9 @@ with open('settings.yaml', 'r') as yml:
 _secret_key = settings['fastapi']['password']['SECRET_KEY']
 _algorithm = settings['fastapi']['password']['ALGORITHM']
 
+
 _logger = set_logger(__name__)
-def create_access_token(token_payload: dict, expires_delta: Optional[timedelta] = None,):
+def create_access_token(uid: str, expires_delta: Optional[timedelta] = None,):
     """
     アクセストークンを作成する
     
@@ -42,3 +45,5 @@ def create_access_token(token_payload: dict, expires_delta: Optional[timedelta] 
     except: 
         _logger.warning(create_jwt_exception)
         raise create_jwt_exception
+    # token = auth.create_custom_token(uid)
+    # return token

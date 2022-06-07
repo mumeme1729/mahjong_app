@@ -64,6 +64,16 @@ def get_game_by_id(game_id:UUID,db:Session)->GamesTable:
     """
     return db.query(GamesTable).options(joinedload(GamesTable.game_results)).filter(GamesTable.id == game_id).first()
 
+def get_recently_game(group_id,db:Session):
+    """
+    指定したグループの直近のデータを取得
+    """
+    game = db.query(GamesTable).\
+        options(joinedload(GamesTable.game_results)).\
+            filter(GamesTable.group_id == group_id).limit(10).all()
+    
+    return game
+
 ### DELETE ###
 def delete_game(game_id:UUID,db:Session):
     """

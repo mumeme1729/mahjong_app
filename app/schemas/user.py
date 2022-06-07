@@ -11,21 +11,23 @@ class UserBase(BaseModel):
     """
     userの基本schema
     """
-    email: Optional[EmailStr] = None
+    # email: Optional[EmailStr] = None
+    firebase_uid: Optional[str] = None
     is_active: Optional[bool] = None
 
 class UserCreate(UserBase):
     """
     user作成時のschema
     """
-    email: EmailStr
-    password: str
+    # email: EmailStr
+    # password: str
+    firebase_uid: str
 
 class UserUpdate(UserBase):
     """
     UPDATE時のschema
     """
-    password: Optional[str] = None
+    # password: Optional[str] = None
     nick_name: Optional[str] = None
     image: Optional[str] = None
 
@@ -44,11 +46,11 @@ class User(UserInDBBase):
     nick_name: Optional[str] = None
     image: Optional[str] = None
 
-class UserInDB(UserInDBBase):
-    """
-    DB保存時に追加するプロパティ
-    """
-    hashed_password:str
+# class UserInDB(UserInDBBase):
+#     """
+#     DB保存時に追加するプロパティ
+#     """
+#     hashed_password:str
 
 
 

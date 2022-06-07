@@ -35,11 +35,12 @@ def set_user(obj_in:UserCreate,db:Session)->dict:
     _logger.info(f" user_data: {obj_in}")
  
     user = UserTable(
-            email = obj_in.email,
-            hashed_password = get_password_hash(obj_in.password),
+            # email = obj_in.email,
+            # hashed_password = get_password_hash(obj_in.password),
+            firebase_uid = obj_in.firebase_uid,
             is_active = obj_in.is_active,
             created_at = dt,
-            nick_name = obj_in.email,
+            nick_name = None,
             image = None
     )
     
@@ -72,11 +73,11 @@ def update_user(db_obj: User,obj_in: Union[UserUpdate, Dict[str, Any]],
     return db_obj
 
 #GET 
-def get_user_by_email(email: str,db: Session) -> Optional[UserTable]:
+def get_user_by_firebase_uid(uid: str,db: Session) -> Optional[UserTable]:
         """
         指定したemailを持つユーザーを取得
         """
-        return db.query(UserTable).filter(UserTable.email == email).options(joinedload(UserTable.profiles)).first()
+        return db.query(UserTable).filter(UserTable.firebase_uid == uid).options(joinedload(UserTable.profiles)).first()
 
 def get_all_users(db:Session) ->List[UserTable]:
         """
@@ -110,9 +111,10 @@ def get_all_user_data(id: str,db: Session):
     #         outerjoin(GameResultTable,GameResultTable.profile == ProfileTable.id).\
     #             filter(ProfileTable.is_active == True).all()
 
-    user = db.query(UserTable,ProfileTable).\
+    user = db.query(UserTable,ProfileTable,GroupsTable).\
          outerjoin(ProfileTable,ProfileTable.user == UserTable.id).\
              options(joinedload(ProfileTable.game_results)).\
+                 outerjoin(GroupsTable,ProfileTable.group == GroupsTable.id).\
                  filter(ProfileTable.is_active == True,UserTable.id == id).all()
         
     return user
