@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from schemas.user import User,UserInDBBase
 from schemas.group import GroupCreate
 from services.cruds.profile_crud import set_profile
-from services.cruds.group_crud import set_group,get_all_groups,join_group
+from services.cruds.group_crud import set_group,get_all_groups,join_group,get_selected_group
 from services.authenticates.get_current_user import get_current_active_user
 from services.logs.set_logs import set_logger
 from db import get_db
@@ -33,7 +33,7 @@ async def create_group(group:GroupCreate,db:Session = Depends(get_db),current_us
     """
     グループを作成する
     """
-    _logger.info("Create group by {current_user.email}")
+    _logger.info("Create group by {current_user.id}")
     # グループ作成し、作成したグループのidを返す
     group_id = set_group(group,current_user,db)
     if not group_id:
@@ -78,3 +78,7 @@ def read_groups(db:Session = Depends(get_db)) -> Any:
     groups = get_all_groups(db)
     return groups
 
+@router.get("/get_selected_group")
+def get_group(group_id:str ,db:Session = Depends(get_db)):
+    group = get_selected_group(group_id,db)
+    return group

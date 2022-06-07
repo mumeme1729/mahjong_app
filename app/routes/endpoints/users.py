@@ -27,7 +27,7 @@ async def read_users_me(current_user: User = Depends(get_current_active_user),db
     """
     現在ログインしているユーザーを返す。
     """
-    _logger.info(f"get current user : {current_user.email}")
+    _logger.info(f"get current user : {current_user.firebase_uid}")
     user_data = get_all_user_data(current_user.id,db)
     # ユーザーデータを加工する
     nick_name:str = ""
@@ -38,6 +38,9 @@ async def read_users_me(current_user: User = Depends(get_current_active_user),db
     rank3:int = 0
     rank4:int = 0
     score:int = 0
+    game_id = []
+    group = []
+    # return user_data
 
     for i in range(len(user_data)):
         # 最初のみ名前等を取得する
@@ -56,6 +59,11 @@ async def read_users_me(current_user: User = Depends(get_current_active_user),db
                     rank3 += 1
                 else:
                     rank4 +=1
+                game_id.append(game_results.game)
+        if user_data[i]["GroupsTable"] is not None:
+            group.append(user_data[i]["GroupsTable"])
+    # 参加しているすべてのグループを取得
+
     login_user ={
         "nick_name":nick_name,
         "image":image,
@@ -64,7 +72,8 @@ async def read_users_me(current_user: User = Depends(get_current_active_user),db
         "rank3":rank3,
         "rank4":rank4,
         "score":score,
-        "game_cnt":game_cnt
+        "game_cnt":game_cnt,
+        "group":group
     }
     
     return login_user

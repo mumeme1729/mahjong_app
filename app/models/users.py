@@ -11,8 +11,9 @@ class UserTable(Base):
     """
     __tablename__ = 'users'
     id = Column(UUIDType(binary=False),primary_key=True,default=uuid4)
-    email = Column(String(30),unique=True,nullable=False)
-    hashed_password = Column(String(255),nullable=False)
+    # email = Column(String(30),unique=True,nullable=False)
+    # hashed_password = Column(String(255),nullable=False)
+    firebase_uid = Column(String(30),unique=True,nullable=False)
     is_active = Column(Boolean,nullable=False, default=True)
     created_at = Column(TIMESTAMP,nullable=False)
     nick_name = Column(String(255))

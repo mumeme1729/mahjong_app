@@ -7,6 +7,7 @@ from typing import List
 from uuid import UUID
 from sqlalchemy.orm.session import Session
 from sqlalchemy.orm import joinedload
+from services.cruds.game_crud import get_recently_game
 from services.cruds.profile_crud import dis_activate_profile
 from services.cruds.profile_crud import activate_profile
 from models.games import GamesTable
@@ -107,6 +108,44 @@ def get_all_groups(db:Session)->List[GroupsTable]:
     """
     groups = db.query(GroupsTable).options(joinedload(GroupsTable.profiles)).options(joinedload(GroupsTable.games)).all()
     return groups
+
+def get_selected_group(group_id:str,db:Session):
+    """
+    選択したグループを返す
+
+    """
+    group = db.query(GroupsTable).\
+        options(joinedload(GroupsTable.profiles)).\
+            filter(GroupsTable.id == group_id).\
+                all()
+    # 直近の対局記録
+    game = get_recently_game(group_id,db)
+    group.append({"Games":game})
+    
+    return group
+    
+    # def get_alias_infos_with_pagination（user、page_id = 0、query = None）-> [AliasInfo]：
+    # ret = []
+    # q =（
+    #     db.session.query（Alias）
+    #     .options（joinedload（Alias.mailbox））
+    #     .filter（Alias.user_id == user.id）
+    #     .order_by(Alias.created_at.desc())
+    # )
+
+    # if query:
+    #     q = q.filter(
+    #         or_(Alias.email.ilike(f"%{query}%"), Alias.note.ilike(f"%{query}%"))
+    #     )
+
+    # q = q.limit(PAGE_LIMIT).offset(page_id * PAGE_LIMIT)
+
+    # for alias in q:
+    #     ret.append(get_alias_info(alias))
+
+    # return ret 
+
+
 
 ### DELETE ###
 def leave_group(group_id:UUID,user_id:UUID,db:Session)->UUID:
