@@ -1,7 +1,9 @@
-class ApiError(Exception):
-    status_code:int = 400
-    detail:str = "error"
-
-    def __init__(self,status_code:int = 400,detail:str = "error"):
+class ApiException(Exception):
+    """
+    HTTPエラーハンドリングクラス
+    
+    """
+    def __init__(self, status_code: int, status:str, detail:str):
         self.status_code = status_code
+        self.status = status
         self.detail = detail

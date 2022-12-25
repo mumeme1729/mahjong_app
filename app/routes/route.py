@@ -1,7 +1,14 @@
+import logging
 from sys import prefix
 from fastapi import APIRouter
-
+from services.logs.set_logs import set_logger
 from .endpoints import users,groups,login,games
+
+_uvicorn_accsess_logger = logging.getLogger("uvicorn.access")
+set_logger(_uvicorn_accsess_logger, file_name = 'access')
+_ormapper_logger = logging.getLogger("sqlalchemy.engine")
+set_logger(_ormapper_logger, file_name = 'ormapper', log_level = 'WARN')
+
 
 api_router = APIRouter()
 

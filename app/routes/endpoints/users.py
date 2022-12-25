@@ -1,6 +1,7 @@
 from typing import Any
 import yaml
-
+import logging
+from utils.errors import ApiException
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -17,9 +18,8 @@ with open('settings.yaml', 'r') as yml:
     settings = yaml.safe_load(yml)
 
 #ログファイルを作成
-_uvicorn_accsess_logger = set_logger("uvicorn.access",file_name = 'access')
-_ormapper_logger = set_logger("sqlalchemy.engine",file_name='ormapper')
-_logger = set_logger(__name__)
+_logger = logging.getLogger(__name__)
+set_logger(_logger)
 
 
 @router.get("/me/")#, response_model=User
@@ -27,56 +27,69 @@ async def read_users_me(current_user: User = Depends(get_current_active_user),db
     """
     現在ログインしているユーザーを返す。
     """
-    _logger.info(f"get current user : {current_user.firebase_uid}")
-    user_data = get_all_user_data(current_user.id,db)
-    # ユーザーデータを加工する
-    nick_name:str = ""
-    image:str = ""
-    game_cnt:int = 0
-    rank1:int = 0
-    rank2:int = 0
-    rank3:int = 0
-    rank4:int = 0
-    score:int = 0
-    game_id = []
-    group = []
-    # return user_data
+    try:
+        user_data = get_all_user_data(current_user.id,db)
+        # ユーザーデータを加工する
+        nick_name:str = ""
+        image:str = ""
+        game_cnt:int = 0
+        rank1:int = 0
+        rank2:int = 0
+        rank3:int = 0
+        rank4:int = 0
+        score:int = 0
+        game_id = []
+        group = []
+        # return user_data
 
-    for i in range(len(user_data)):
-        # 最初のみ名前等を取得する
-        if i == 0:
-            nick_name = user_data[i]["UserTable"].nick_name
-            image = user_data[i]["UserTable"].image
-        if user_data[i]["ProfileTable"] is not None:
-            for game_results in user_data[i]["ProfileTable"].game_results:
-                game_cnt += 1
-                score += game_results.score
-                if game_results.rank == 1:
-                    rank1 += 1
-                elif game_results.rank == 2:
-                    rank2 += 1
-                elif game_results.rank == 3:
-                    rank3 += 1
-                else:
-                    rank4 +=1
-                game_id.append(game_results.game)
-        if user_data[i]["GroupsTable"] is not None:
-            group.append(user_data[i]["GroupsTable"])
-    # 参加しているすべてのグループを取得
+        for i in range(len(user_data)):
+            # 最初のみ名前等を取得する
+            if i == 0:
+                nick_name = user_data[i]["UserTable"].nick_name
+                image = user_data[i]["UserTable"].image
+            if user_data[i]["ProfileTable"] is not None:
+                for game_results in user_data[i]["ProfileTable"].game_results:
+                    game_cnt += 1
+                    score += game_results.score
+                    if game_results.rank == 1:
+                        rank1 += 1
+                    elif game_results.rank == 2:
+                        rank2 += 1
+                    elif game_results.rank == 3:
+                        rank3 += 1
+                    else:
+                        rank4 +=1
+                    game_id.append(game_results.game)
+            if user_data[i]["GroupsTable"] is not None:
+                group.append(user_data[i]["GroupsTable"])
+        # 参加しているすべてのグループを取得
 
-    login_user ={
-        "nick_name":nick_name,
-        "image":image,
-        "rank1":rank1,
-        "rank2":rank2,
-        "rank3":rank3,
-        "rank4":rank4,
-        "score":score,
-        "game_cnt":game_cnt,
-        "group":group
-    }
-    
-    return login_user
+        login_user ={
+            "nick_name":nick_name,
+            "image":image,
+            "rank1":rank1,
+            "rank2":rank2,
+            "rank3":rank3,
+            "rank4":rank4,
+            "score":score,
+            "game_cnt":game_cnt,
+            "group":group
+        }
+        
+        return login_user
+    except ApiException as e:
+        db.rollback()
+        _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
+        raise e
+
+    except Exception as e:
+        _logger.error(f"request failed. Error = {e}")
+        db.rollback()
+        raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="BadRequest",
+            )
 
 @router.get("/all_users")
 def read_users(db:Session = Depends(get_db)) -> Any:
@@ -91,5 +104,19 @@ def read_users(id:str,db:Session = Depends(get_db)) -> Any:
     """
     現在登録されているユーザー一覧を取得。
     """
-    users = get_user_by_id(id,db)
-    return users
+    try:
+        users = get_user_by_id(id,db)
+        return users
+    except ApiException as e:
+        db.rollback()
+        _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
+        raise e
+
+    except Exception as e:
+        _logger.error(f"request failed. Error = {e}")
+        db.rollback()
+        raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="BadRequest",
+            )

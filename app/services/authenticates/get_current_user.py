@@ -1,4 +1,5 @@
 import yaml
+from utils.errors import ApiException
 from models import profiles
 from services.cruds.user_crud import get_user_by_firebase_uid
 from fastapi import Depends,HTTPException,status
@@ -21,14 +22,11 @@ with open('settings.yaml', 'r') as yml:
 
 _secret_key = settings['fastapi']['password']['SECRET_KEY']
 _algorithm = settings['fastapi']['password']['ALGORITHM']
-
 _oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 cred = credentials.Certificate('secret_key.json')
 firebase_admin.initialize_app(cred)
 
-# ロガーの設定
-_logger = set_logger(__name__)
 async def get_current_user(cred: HTTPAuthorizationCredentials=Depends(HTTPBearer(auto_error=False)),db:Session = Depends(get_db)) -> User:
     """
     JWTを解析し、現在ログインしているユーザーを返す。
@@ -39,38 +37,41 @@ async def get_current_user(cred: HTTPAuthorizationCredentials=Depends(HTTPBearer
     token : str
         jwtのトークンデータ
     """
-    if cred is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Bearer authentication required",
-            headers={'WWW-Authenticate': 'Bearer realm="auth_required"'},
-        )
     try:
-        decoded_token = auth.verify_id_token(cred.credentials)
-    except Exception as err:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid authentication credentials. {err}",
-            headers={'WWW-Authenticate': 'Bearer error="invalid_token"'},
+        if cred is None:
+            raise ApiException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                status="fail",
+                detail="Bearer authentication required",
+            )
+        try:
+            decoded_token = auth.verify_id_token(cred.credentials)
+        except Exception as err:
+            raise ApiException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                status="fail",
+                detail=f"Invalid authentication credentials. {err}",
+            )
+        uid = decoded_token['uid']
+        # ユーザーテーブルからトークンデータのユーザー名と等しいユーザーを取得
+        user_data = get_user_by_firebase_uid(uid,db)
+        user = User(
+                id = user_data.id,
+                firebase_uid = user_data.firebase_uid,
+                is_active = user_data.is_active,
+                profiles = user_data.profiles,
+                nick_name = user_data.nick_name,
+                image = user_data.image
         )
-    uid = decoded_token['uid']
-    # ユーザーテーブルからトークンデータのユーザー名と等しいユーザーを取得
-    user_data = get_user_by_firebase_uid(uid,db)
-    user = User(
-            id = user_data.id,
-            firebase_uid = user_data.firebase_uid,
-            is_active = user_data.is_active,
-            profiles = user_data.profiles,
-            nick_name = user_data.nick_name,
-            image = user_data.image
-    )
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid authentication credentials. {err}",
-            headers={'WWW-Authenticate': 'Bearer error="invalid_token"'},
-        )
-    return user
+        if user is None:
+            raise ApiException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                status="fail",
+                detail=f"Invalid authentication credentials. {err}",
+            )
+        return user
+    except Exception as e:
+        raise e
 
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
@@ -84,8 +85,7 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
         現在ログインしているユーザー情報
     """
     if not current_user.is_active:
-        _logger.warning(HTTPException(status_code=400, detail="Inactive user"))
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise ApiException(status_code=400, status="fail", detail="Inactive user")
         
     return current_user
 

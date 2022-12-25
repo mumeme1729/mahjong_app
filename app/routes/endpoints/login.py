@@ -4,6 +4,7 @@ import logging
 import requests
 
 from datetime import timedelta
+from utils.errors import ApiException
 from fastapi import APIRouter, Body, Depends, HTTPException,status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -23,26 +24,40 @@ with open('settings.yaml', 'r') as yml:
     settings = yaml.safe_load(yml)
 
 #ログファイルを作成
-_uvicorn_accsess_logger = set_logger("uvicorn.access",file_name = 'access')
-_ormapper_logger = set_logger("sqlalchemy.engine",file_name='ormapper')
-_logger = set_logger(__name__)
+_logger = logging.getLogger(__name__)
+set_logger(_logger)
 
 @router.post("/register")
 async def create_character(user_data:UserCreate,db:Session = Depends(get_db)):
     """
     ユーザー登録を行う。
     """
-    #既に登録されているか確認を行う
-    user = get_user_by_firebase_uid(user_data.firebase_uid,db)
-    if not user:
-        #データベースにユーザーを登録する
-        user = set_user(user_data,db)
-        return user
-    else:
-        raise HTTPException(
-            status_code=400,
-            detail="this_firebase_uid_has_already_registerd",
-        )
+    try:
+        #既に登録されているか確認を行う
+        user = get_user_by_firebase_uid(user_data.firebase_uid,db)
+        if not user:
+            #データベースにユーザーを登録する
+            user = set_user(user_data,db)
+            return user
+        else:
+            raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="User is already registered.",
+            )
+    except ApiException as e:
+        db.rollback()
+        _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
+        raise e
+
+    except Exception as e:
+        _logger.error(f"request failed. Error = {e}")
+        db.rollback()
+        raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="BadRequest",
+            )
     
 
 # @router.post("/token", response_model=Token)

@@ -30,7 +30,9 @@ DATABASE = 'postgresql://%s:%s@%s:%s/%s' % (
 ENGINE = create_engine(
     DATABASE,
     encoding="utf-8",
-    echo=True
+    echo=False,
+    # timezoneの指定をしないと取り出す時すべてutc表示になる
+    connect_args={"options": "-c timezone=Asia/Tokyo"}
 )
 
 # Sessionの作成

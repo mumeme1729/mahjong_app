@@ -5,6 +5,7 @@ import logging
 import requests
 
 from datetime import datetime, timedelta
+from utils.errors import ApiException
 from services.cruds.group_crud import leave_group
 from fastapi import APIRouter, Body, Depends, HTTPException,status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -24,9 +25,9 @@ with open('settings.yaml', 'r') as yml:
     settings = yaml.safe_load(yml)
 
 #ログファイルを作成
-_uvicorn_accsess_logger = set_logger("uvicorn.access",file_name = 'access')
-_ormapper_logger = set_logger("sqlalchemy.engine",file_name='ormapper')
-_logger = set_logger(__name__)
+#ログファイルを作成
+_logger = logging.getLogger(__name__)
+set_logger(_logger)
 
 @router.post("/create_groups")
 async def create_group(group:GroupCreate,db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
@@ -34,24 +35,39 @@ async def create_group(group:GroupCreate,db:Session = Depends(get_db),current_us
     グループを作成する
     """
     _logger.info("Create group by {current_user.id}")
-    # グループ作成し、作成したグループのidを返す
-    group_id = set_group(group,current_user,db)
-    if not group_id:
-        raise HTTPException(
+    try:
+        # グループ作成し、作成したグループのidを返す
+        group_id = set_group(group,current_user,db)
+        if not group_id:
+            raise ApiException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cloud not create group",
-                headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    #postしたユーザーのこのグループのプロフィールを作成する
-    profile_id = set_profile(current_user, group_id, db)
-    if not profile_id:
-        raise  HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cloud not create user profile",
-                headers={"WWW-Authenticate": "Bearer"},
+                status="fail",
+                detail="group create error",
             )
-    return group_id
+        
+        #postしたユーザーのこのグループのプロフィールを作成する
+        profile_id = set_profile(current_user, group_id, db)
+        if not profile_id:
+            raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="profile create error",
+            )
+        return group_id
+        
+    except ApiException as e:
+        db.rollback()
+        _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
+        raise e
+
+    except Exception as e:
+        _logger.error(f"request failed. Error = {e}")
+        db.rollback()
+        raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="BadRequest",
+            )
     
 
 @router.put("/join_group")
@@ -59,26 +75,82 @@ def put_join_group(group_id:UUID,password:str,db:Session = Depends(get_db),curre
     """
     グループに参加する
     """
-    res = join_group(group_id,password,current_user.id,db)
-    return res
+    try:
+        res = join_group(group_id,password,current_user.id,db)
+        return res
+    except ApiException as e:
+        db.rollback()
+        _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
+        raise e
+
+    except Exception as e:
+        _logger.error(f"request failed. Error = {e}")
+        db.rollback()
+        raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="BadRequest",
+            )
 
 @router.put("/leave_group")
 def put_leave_group(group_id:UUID,db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
     """
     グループから離脱する
     """
-    res = leave_group(group_id,current_user.id,db)
-    return res
+    try:
+        res = leave_group(group_id,current_user.id,db)
+        return res
+    except ApiException as e:
+        db.rollback()
+        _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
+        raise e
+
+    except Exception as e:
+        _logger.error(f"request failed. Error = {e}")
+        db.rollback()
+        raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="BadRequest",
+            )
 
 @router.get("/all_groups")
 def read_groups(db:Session = Depends(get_db)) -> Any:
     """
     現在登録されているユーザー一覧を取得。
     """
-    groups = get_all_groups(db)
-    return groups
+    try:
+        groups = get_all_groups(db)
+        return groups
+    except ApiException as e:
+        db.rollback()
+        _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
+        raise e
+
+    except Exception as e:
+        _logger.error(f"request failed. Error = {e}")
+        db.rollback()
+        raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="BadRequest",
+            )
 
 @router.get("/get_selected_group")
 def get_group(group_id:str ,db:Session = Depends(get_db)):
-    group = get_selected_group(group_id,db)
-    return group
+    try:
+        group = get_selected_group(group_id,db)
+        return group
+    except ApiException as e:
+        db.rollback()
+        _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
+        raise e
+
+    except Exception as e:
+        _logger.error(f"request failed. Error = {e}")
+        db.rollback()
+        raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="BadRequest",
+            )
