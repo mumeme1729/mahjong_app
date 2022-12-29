@@ -53,8 +53,15 @@ async def get_current_user(cred: HTTPAuthorizationCredentials=Depends(HTTPBearer
                 detail=f"Invalid authentication credentials. {err}",
             )
         uid = decoded_token['uid']
+
         # ユーザーテーブルからトークンデータのユーザー名と等しいユーザーを取得
         user_data = get_user_by_firebase_uid(uid,db)
+        if user_data is None:
+            raise ApiException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                status="fail",
+                detail=f"user_data is none",
+            )
         user = User(
                 id = user_data.id,
                 firebase_uid = user_data.firebase_uid,
