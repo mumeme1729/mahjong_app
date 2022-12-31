@@ -22,7 +22,7 @@ _logger = logging.getLogger(__name__)
 set_logger(_logger)
 
 
-@router.get("/me/")#, response_model=User
+@router.get("/me")#, response_model=User
 async def read_users_me(current_user: User = Depends(get_current_active_user),db:Session = Depends(get_db)):
     """
     現在ログインしているユーザーを返す。
