@@ -15,6 +15,7 @@ from schemas.user import User
 
 
 import logging
+from services.cruds.profile_crud import get_profile_by_id
 from services.cruds.group_crud import get_group_by_id
 from services.cruds.game_result_crud import set_game_result
 from services.cruds.game_crud import set_game, delete_game,get_game_by_id
@@ -33,7 +34,7 @@ _logger = logging.getLogger(__name__)
 set_logger(_logger)
 
 
-@router.post("/create_game/")
+@router.post("/create_game")
 async def create_game(game_data:GameCreate,db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user))->Any:
     """
     対局テーブルを作成する
@@ -65,7 +66,18 @@ async def create_game(game_data:GameCreate,db:Session = Depends(get_db),current_
                             result.game = game_id
                             #結果を格納する
                             #TODO プロフィールチェック 
+                            prof = get_profile_by_user_and_group(result.profile, group.id, db)
+                            if prof is None:
+                                raise ApiException(
+                                    status_code=status.HTTP_400_BAD_REQUEST,
+                                    status="fail",
+                                    detail="Invalid game result",
+                                )
                             gr = set_game_result(game_id,result,db)
+                    #レート更新
+                    #
+                    #
+                    #
                     else:
                         # 対象のゲームを削除する
                         delete_game(game_id,db)
@@ -80,8 +92,19 @@ async def create_game(game_data:GameCreate,db:Session = Depends(get_db),current_
                         #結果を格納する
                         for result in game_data.game_results:
                             result.game = game_id
+                            prof = get_profile_by_id(result.profile, db)
+                            if prof is None:
+                                raise ApiException(
+                                    status_code=status.HTTP_400_BAD_REQUEST,
+                                    status="fail",
+                                    detail="Invalid game result",
+                                )
                             #結果を格納する
                             gr = set_game_result(game_id,result,db)
+                     #レート更新
+                    #
+                    #
+                    #
                     else:
                         # 不正なため対象のゲームを削除する
                         delete_game(game_id,db)
@@ -90,6 +113,7 @@ async def create_game(game_data:GameCreate,db:Session = Depends(get_db),current_
                             status="fail",
                             detail="Illegal game result",
                         )
+                
                 return game_id
         raise ApiException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -111,7 +135,9 @@ async def create_game(game_data:GameCreate,db:Session = Depends(get_db),current_
                 detail="BadRequest",
             )
 
-@router.delete("/delete_game/",)
+
+
+@router.delete("/delete_game",)
 def delete_game_table(game_id:UUID,db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user))->Any:
     """
     対象の対局を削除する

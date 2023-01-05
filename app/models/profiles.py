@@ -20,6 +20,8 @@ class ProfileTable(Base):
     update_at = Column(TIMESTAMP,nullable=False)
     nick_name = Column(String(30))
     image = Column(String(255))
+    rate4 = Column(Integer,nullable=False)
+    rate3 = Column(Integer,nullable=False)
     #所属しているグループ情報
 
     # リレーション設定

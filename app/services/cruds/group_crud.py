@@ -83,6 +83,12 @@ def join_group(group_id:UUID,password:str,user_id:UUID,db:Session)->UUID:
             # グループに参加させる
             # profileを作成
             user = get_user_by_id(user_id,db)
+            if user is None:
+                raise  ApiException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    status="fail",
+                    detail="user does not exists.",
+                )
             profile_id = set_profile(user, group_id, db)
             if profile_id is None:
                 raise  ApiException(

@@ -1,7 +1,7 @@
 db:
   DB_USER: postgres
   DB_PASSWORD: postgres
-  DB_HOST: mahjong_db_container
+  DB_HOST: db
   DB_NAME: mahjong_db_container
   DB_PORT: 5432
 
