@@ -34,7 +34,7 @@ _logger = logging.getLogger(__name__)
 set_logger(_logger)
 
 
-@router.post("/create_game/", response_model = CommonResponseSuccess)
+@router.post("/create_game")
 async def create_game(game_data:GameCreate,db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user))->Any:
     """
     対局テーブルを作成する
@@ -112,7 +112,7 @@ async def create_game(game_data:GameCreate,db:Session = Depends(get_db),current_
                 detail="BadRequest",
             )
 
-@router.delete("/delete_game/", response_model = CommonResponseSuccess)
+@router.delete("/delete_game",)
 def delete_game_table(game_id:UUID,db:Session= Depends(get_db),current_user: User = Depends(get_current_active_user))->Any:
     """
     対象の対局を削除する
