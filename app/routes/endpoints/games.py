@@ -2,6 +2,7 @@
 from typing import Any
 from uuid import UUID
 import yaml
+from schemas.response import CommonResponseSuccess
 from utils.errors import ApiException
 
 from services.cruds.game_crud import update_game_and_result
@@ -90,7 +91,7 @@ async def create_game(game_data:GameCreate,db:Session = Depends(get_db),current_
                             status="fail",
                             detail="Illegal game result",
                         )
-                return game_id
+                return {"status":"ok"}
         raise ApiException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 status="fail",
@@ -118,7 +119,7 @@ def delete_game_table(game_id:UUID,db:Session = Depends(get_db),current_user: Us
     """
     try:
         res = delete_game(game_id,db)
-        return res
+        return {"status":"ok"}
     except ApiException as e:
         db.rollback()
         _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
@@ -149,7 +150,7 @@ def get_game(game_id:UUID,db:Session = Depends(get_db),current_user: User = Depe
                 detail="BadRequest",
             )
 
-@router.put("/update_game")
+@router.put("/update_game", response_model = CommonResponseSuccess)
 def update_game(game_data:GameUpdata,db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
     try:
         # グループのチェック
@@ -166,7 +167,7 @@ def update_game(game_data:GameUpdata,db:Session = Depends(get_db),current_user: 
         if profile is not None:
             # アップデートを行う
             res = update_game_and_result(game_data,profile,db)
-            return res       
+            return {"status":"ok"}    
         raise ApiException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 status="fail",

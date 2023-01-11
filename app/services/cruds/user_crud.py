@@ -48,27 +48,20 @@ def set_user(obj_in:UserCreate,db:Session)->dict:
     
 
 #update
-def update_user(db_obj: User,obj_in: Union[UserUpdate, Dict[str, Any]], db: Session) -> User:
+def update_user_crud(user: User, update_info:UserUpdate, path:str, db: Session) -> User:
+    """
+    ユーザーのデータを更新する
+    """
     try:
-        if isinstance(obj_in, dict):
-            #onjがdictかどうか判定
-            update_data = obj_in
-        else:
-            update_data = obj_in.dict(exclude_unset=True)
-            
-        if "password" in update_data.keys() and update_data["password"]:
-            hashed_password = get_password_hash(update_data["password"])
-            del update_data["password"]
-            update_data["hashed_password"] = hashed_password
-
-        obj_data = jsonable_encoder(db_obj)
-        for field in obj_data:
-            if field in update_data:
-                setattr(db_obj, field, update_data[field])
-        db.add(db_obj)
+        user_table = get_user_by_id(user.id, db)
+        if update_info.nick_name is not None:
+            user_table.nick_name = update_info.nick_name
+        if update_info.introduction is not None:
+            user_table.introduction = update_info.introduction
+        if path is not None:
+            user_table.image = path
         db.commit()
-        db.refresh(db_obj)
-        return db_obj
+        return user_table
     except Exception as e:
             raise e
 
