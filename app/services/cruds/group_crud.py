@@ -35,9 +35,8 @@ def set_group(group:GroupCreate,user:User,db:Session)->dict:
                 title = group.title,
                 password = group.password,
                 text = group.text,
-                image = group.image,
                 created_at = dt,
-                update_at = dt,
+                update_at = dt
         )
 
         #group.users.append(get_user_by_id(user.id,db))
@@ -104,6 +103,19 @@ def join_group(group_id:UUID,password:str,user_id:UUID,db:Session)->UUID:
     except Exception as e:
             raise e
 
+def update_group_image(group_id:UUID, image_path:str ,db:Session):
+    """
+    グループのイメージを更新する
+    """
+    try:
+        group =  get_group_by_id(group_id, db)
+        group.image = image_path
+        db.commit()
+        return group.id
+    except Exception as e:
+        raise e
+    
+
 #GET(idより)
 def get_group_by_id(group_id:UUID,db:Session)-> GroupsTable:
     """
@@ -142,29 +154,6 @@ def get_selected_group(group_id:str,db:Session):
     except Exception as e:
         raise e
     
-    # def get_alias_infos_with_pagination（user、page_id = 0、query = None）-> [AliasInfo]：
-    # ret = []
-    # q =（
-    #     db.session.query（Alias）
-    #     .options（joinedload（Alias.mailbox））
-    #     .filter（Alias.user_id == user.id）
-    #     .order_by(Alias.created_at.desc())
-    # )
-
-    # if query:
-    #     q = q.filter(
-    #         or_(Alias.email.ilike(f"%{query}%"), Alias.note.ilike(f"%{query}%"))
-    #     )
-
-    # q = q.limit(PAGE_LIMIT).offset(page_id * PAGE_LIMIT)
-
-    # for alias in q:
-    #     ret.append(get_alias_info(alias))
-
-    # return ret 
-
-
-
 ### DELETE ###
 def leave_group(group_id:UUID,user_id:UUID,db:Session)->UUID:
     """

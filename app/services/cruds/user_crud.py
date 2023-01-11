@@ -48,7 +48,7 @@ def set_user(obj_in:UserCreate,db:Session)->dict:
     
 
 #update
-def update_user_crud(user: User, update_info:UserUpdate, db: Session) -> User:
+def update_user_crud(user: User, update_info:UserUpdate, path:str, db: Session) -> User:
     """
     ユーザーのデータを更新する
     """
@@ -56,8 +56,10 @@ def update_user_crud(user: User, update_info:UserUpdate, db: Session) -> User:
         user_table = get_user_by_id(user.id, db)
         if update_info.nick_name is not None:
             user_table.nick_name = update_info.nick_name
-        if update_info.image is not None:
-            user_table.image = update_info.image
+        if update_info.introduction is not None:
+            user_table.introduction = update_info.introduction
+        if path is not None:
+            user_table.image = path
         db.commit()
         return user_table
     except Exception as e:

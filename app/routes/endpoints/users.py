@@ -1,6 +1,7 @@
-from typing import Any
+from typing import Any, Optional
 import yaml
 import logging
+from schemas.response import CommonResponseSuccess
 import boto3
 import config
 from datetime import datetime
@@ -89,7 +90,7 @@ async def read_users_me(current_user: User = Depends(get_current_active_user),db
         _logger.error(f"request failed. Error = {e}")
         db.rollback()
         raise ApiException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=400,
                 status="fail",
                 detail="BadRequest",
             )
@@ -119,41 +120,42 @@ def read_users(id:str,db:Session = Depends(get_db)) -> Any:
         _logger.error(f"request failed. Error = {e}")
         db.rollback()
         raise ApiException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=400,
                 status="fail",
                 detail="BadRequest",
             )
 
 
-@router.put("/update_user_info")
-def update_user(nick_name:str, upload_file:UploadFile = File(None), db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
+@router.put("/update_user_info", response_model = CommonResponseSuccess)
+def update_user(update_info:UserUpdate, upload_file:UploadFile = File(None), db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
     """
     ユーザー情報を更新する
     """
     try:
         # S3にUPロードする
-        s3 = boto3.client('s3',
-            aws_access_key_id=config.AWS_ACCESS_KEY,
-            aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
-            region_name=config.AWS_REGION
-        )
+        path = None
+        if upload_file is not None:
+            s3 = boto3.client('s3',
+                aws_access_key_id=config.AWS_ACCESS_KEY,
+                aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
+                region_name=config.AWS_REGION
+            )
 
-        dt_now = datetime.now()
-        dt = dt_now.strftime('%Y%m%d%H%M%S')
-        filename = f"{current_user.nick_name}_{dt}"
-        Bucket = "mahjong-profile-image"
-        Key = f'user_image/{filename}'
-        s3.upload_file(filename, Bucket, Key)
-        path = f"https://{Bucket}.s3-{config.AWS_REGION}.amazonaws.com/{Key}"
+            dt_now = datetime.now()
+            dt = dt_now.strftime('%Y%m%d%H%M%S')
+            filename = f"{current_user.nick_name}_{dt}"
+            Bucket = "mahjong-profile-image"
+            Key = f'user_image/{filename}'
+            s3.upload_file(filename, Bucket, Key)
+            path = f"https://{Bucket}.s3-{config.AWS_REGION}.amazonaws.com/{Key}"
         #更新する
-        if nick_name is None:
-            nick_name = current_user.nick_name
-        update_info = UserUpdate(
-            nick_name = nick_name,
-            image = path
-        )
-        res = update_user_crud(current_user, update_info,db)
-        return res
+        if update_info.nick_name is None:
+            update_info.nick_name = current_user.nick_name
+        if update_info.introduction is None:
+            update_info.introduction = current_user.introduction
+            
+        update_user_crud(current_user, update_info, path,db)
+        return {"status":"ok"}
     except ApiException as e:
         db.rollback()
         _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
@@ -163,7 +165,7 @@ def update_user(nick_name:str, upload_file:UploadFile = File(None), db:Session =
         _logger.error(f"request failed. Error = {e}")
         db.rollback()
         raise ApiException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=400,
                 status="fail",
                 detail="BadRequest",
             )

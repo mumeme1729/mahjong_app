@@ -4,6 +4,7 @@ import logging
 import requests
 
 from datetime import timedelta
+from schemas.response import CommonResponseSuccess
 from utils.errors import ApiException
 from fastapi import APIRouter, Body, Depends, HTTPException,status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -27,7 +28,7 @@ with open('settings.yaml', 'r') as yml:
 _logger = logging.getLogger(__name__)
 set_logger(_logger)
 
-@router.post("/register")
+@router.post("/register", response_model = CommonResponseSuccess)
 async def create_character(user_data:UserCreate,db:Session = Depends(get_db)):
     """
     ユーザー登録を行う。
@@ -38,13 +39,14 @@ async def create_character(user_data:UserCreate,db:Session = Depends(get_db)):
         if not user:
             #データベースにユーザーを登録する
             user = set_user(user_data,db)
-            return user
+            return {"status":"ok"}
         else:
             raise ApiException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 status="fail",
                 detail="User is already registered.",
             )
+        
     except ApiException as e:
         db.rollback()
         _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
