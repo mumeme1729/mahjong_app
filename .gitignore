@@ -108,3 +108,6 @@ venv.bak/
 .idea/*
 
 secret_key.json
+
+/logs
+app/migrations/versions
