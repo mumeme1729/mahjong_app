@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional, Union
 from uuid import UUID
 import logging
 import requests
@@ -27,8 +27,10 @@ router = APIRouter()
 _logger = logging.getLogger(__name__)
 set_logger(_logger)
 
+
+
 @router.post("/create_groups", response_model = CommonResponseSuccess)
-async def create_group(group:GroupCreate, upload_file:UploadFile = File(None), db:Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+async def create_group(group:GroupCreate= Depends(), upload_file: UploadFile = File(None), db:Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
     """
     グループを作成する
     """
@@ -42,6 +44,15 @@ async def create_group(group:GroupCreate, upload_file:UploadFile = File(None), d
                 detail="group create error",
             )
         # グループに画像を設定する
+         #postしたユーザーのこのグループのプロフィールを作成する
+        profile_id = set_profile(current_user, group_id, db)
+        if not profile_id:
+            raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="profile create error",
+            )
+    
         path = None
         if upload_file is not None:
             s3 = boto3.client('s3',
@@ -52,21 +63,13 @@ async def create_group(group:GroupCreate, upload_file:UploadFile = File(None), d
 
             dt_now = datetime.now()
             dt = dt_now.strftime('%Y%m%d%H%M%S')
-            filename = f"{group.title}_{dt}"
+            filename = f"{group.title}_{dt}_{upload_file.filename}"
             Bucket = "mahjong-group-image"
             Key = f'group_image/{group_id}/{filename}'
-            s3.upload_file(filename, Bucket, Key)
+            s3.put_object(Body=upload_file.file, Bucket =Bucket, Key =Key)
             path = f"https://{Bucket}.s3-{config.AWS_REGION}.amazonaws.com/{Key}"
             #画像を設定する
             update_group_image(group_id, path, db)
-        #postしたユーザーのこのグループのプロフィールを作成する
-        profile_id = set_profile(current_user, group_id, db)
-        if not profile_id:
-            raise ApiException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                status="fail",
-                detail="profile create error",
-            )
         return {"status": "ok"}
         
     except ApiException as e:
@@ -168,3 +171,4 @@ def get_group(group_id:str ,db:Session = Depends(get_db)):
                 status="fail",
                 detail="BadRequest",
             )
+

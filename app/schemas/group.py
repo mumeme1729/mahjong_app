@@ -19,9 +19,8 @@ class GroupCreate(GroupBase):
     Groupの作成時のschema
     """
     title: str
+    text: str
     password: str
-
-
 class GroupInDBBase(GroupBase):
     id: Optional[UUID] = None
 

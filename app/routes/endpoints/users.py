@@ -124,7 +124,7 @@ def read_users(id:str,db:Session = Depends(get_db)) -> Any:
 
 
 @router.put("/update_user_info", response_model = CommonResponseSuccess)
-def update_user(update_info:UserUpdate, upload_file:UploadFile = File(None), db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
+def update_user(update_info:UserUpdate= Depends(), upload_file:UploadFile = File(None), db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
     """
     ユーザー情報を更新する
     """
@@ -140,10 +140,10 @@ def update_user(update_info:UserUpdate, upload_file:UploadFile = File(None), db:
 
             dt_now = datetime.now()
             dt = dt_now.strftime('%Y%m%d%H%M%S')
-            filename = f"{current_user.nick_name}_{dt}"
+            filename = f"{current_user.id}_{dt}_{upload_file.filename}"
             Bucket = "mahjong-profile-image"
             Key = f'user_image/{filename}'
-            s3.upload_file(filename, Bucket, Key)
+            s3.put_object(Body=upload_file.file, Bucket =Bucket, Key =Key)
             path = f"https://{Bucket}.s3-{config.AWS_REGION}.amazonaws.com/{Key}"
         #更新する
         if update_info.nick_name is None:

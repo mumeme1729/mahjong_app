@@ -82,11 +82,21 @@ def get_profile_by_id(id:UUID,db:Session)-> ProfileTable:
         return db.query(ProfileTable).filter(ProfileTable.id == id).first()
     except Exception as e:
             raise e
-def get_profile_by_user_and_group(user_id:UUID,group_id:UUID,db:Session)->Optional[ProfileTable]:
+
+def get_profile_by_user_and_group(user_id:UUID, group_id:UUID,db:Session)->Optional[ProfileTable]:
     """
     ユーザーidとグループidからプロフィールを取得する
     """
     try:
         return db.query(ProfileTable).filter(ProfileTable.user == user_id,ProfileTable.group == group_id).first()
+    except Exception as e:
+            raise e
+
+def get_profile_by_profile_and_group(profile_id:UUID, group_id:UUID,db:Session)->Optional[ProfileTable]:
+    """
+    profileidとグループidからプロフィールを取得する
+    """
+    try:
+        return db.query(ProfileTable).filter(ProfileTable.id == profile_id, ProfileTable.group == group_id).first()
     except Exception as e:
             raise e

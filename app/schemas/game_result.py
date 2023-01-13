@@ -16,4 +16,4 @@ class GameResultCreate(GameResultBase):
     rank: int
     score: int
     game: Optional[UUID]
-    profile: UUID
+    profile: str

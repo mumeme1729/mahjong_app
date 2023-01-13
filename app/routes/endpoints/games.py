@@ -3,6 +3,7 @@ from typing import Any
 from uuid import UUID
 
 import logging
+from services.cruds.profile_crud import get_profile_by_profile_and_group
 
 
 from utils.errors import ApiException
@@ -12,6 +13,7 @@ from sqlalchemy.orm import Session
 from schemas.game import GameCreate
 from schemas.user import User
 from schemas.game import GameUpdata
+from schemas.response import CommonResponseSuccess
 
 from services.cruds.game_crud import update_game_and_result
 from services.func.calc_rate import calc_rate_4, calc_rate_3
@@ -31,7 +33,7 @@ _logger = logging.getLogger(__name__)
 set_logger(_logger)
 
 @router.post("/create_game", response_model = CommonResponseSuccess)
-async def create_game(game_data:GameCreate,db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user))->Any:
+async def create_game(game_data:GameCreate, db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user))->Any:
     """
     対局テーブルを作成する
     """
@@ -63,12 +65,15 @@ async def create_game(game_data:GameCreate,db:Session = Depends(get_db),current_
                             result.game = game_id
                             #結果を格納する
                             #TODO プロフィールチェック 
-                            prof = get_profile_by_user_and_group(result.profile, group.id, db)
+                            prof = get_profile_by_profile_and_group(result.profile, group.id, db)
+
                             if prof is None:
+                                # 対象のゲームを削除する
+                                delete_game(game_id,db)
                                 raise ApiException(
                                     status_code=status.HTTP_400_BAD_REQUEST,
                                     status="fail",
-                                    detail="Invalid game result",
+                                    detail="Invalid game result Invalid profile",
                                 )
                             gr = set_game_result(game_id,result,db)
                             profiles.append(prof)
@@ -90,8 +95,10 @@ async def create_game(game_data:GameCreate,db:Session = Depends(get_db),current_
                         #結果を格納する
                         for result in game_data.game_results:
                             result.game = game_id
-                            prof = get_profile_by_id(result.profile, db)
+                            prof = get_profile_by_profile_and_group(result.profile, db)
                             if prof is None:
+                                # 対象のゲームを削除する
+                                delete_game(game_id,db)
                                 raise ApiException(
                                     status_code=status.HTTP_400_BAD_REQUEST,
                                     status="fail",

@@ -21,7 +21,7 @@ def calc_rate_4(game_data:GameCreate, profiles:List[ProfileTable], db:Session):
     for result in results:
         for profile in profiles:
             # プロフィールが一致するもの
-            if result.profile == profile.id:
+            if result.profile == str(profile.id):
                 if result.rank == 1:
                     profile.rate4 = round(profile.rate4+(50+((average_rate - profile.rate4)/70)*0.2))
                 elif result.rank == 2:

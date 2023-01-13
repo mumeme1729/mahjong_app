@@ -20,8 +20,8 @@ class ProfileTable(Base):
     update_at = Column(TIMESTAMP,nullable=False)
     nick_name = Column(String(30))
     image = Column(String(255))
-    rate4 = Column(Integer,nullable=False, default=1500)
-    rate3 = Column(Integer,nullable=False, default=1800)
+    rate4 = Column(Integer, default=1500)
+    rate3 = Column(Integer, default=1800)
     introduction = Column(String(1000))
 
     #所属しているグループ情報
