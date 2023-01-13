@@ -23,13 +23,13 @@ class UserCreate(UserBase):
     # password: str
     firebase_uid: str
 
-class UserUpdate(UserBase):
+class UserUpdate(BaseModel):
     """
     UPDATE時のschema
     """
     # password: Optional[str] = None
     nick_name: Optional[str] = None
-    image: Optional[str] = None
+    introduction: Optional[str] = None
 
 
 class UserInDBBase(UserBase):
@@ -44,6 +44,7 @@ class User(UserInDBBase):
     """
     profiles: List[Profile]
     nick_name: Optional[str] = None
+    introduction: Optional[str] = None
     image: Optional[str] = None
 
 # class UserInDB(UserInDBBase):

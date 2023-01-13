@@ -2,18 +2,20 @@ from typing import Any
 from uuid import UUID
 import logging
 import requests
-
+import boto3
+import config
 from datetime import datetime, timedelta
+from schemas.response import CommonResponseSuccess
 from utils.errors import ApiException
 from services.cruds.group_crud import leave_group
-from fastapi import APIRouter, Body, Depends, HTTPException,status
+from fastapi import APIRouter, Body, Depends, HTTPException,status, UploadFile, File
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from schemas.user import User,UserInDBBase
 from schemas.group import GroupCreate
 from services.cruds.profile_crud import set_profile
-from services.cruds.group_crud import set_group,get_all_groups,join_group,get_selected_group
+from services.cruds.group_crud import set_group,get_all_groups,join_group,get_selected_group, update_group_image
 from services.authenticates.get_current_user import get_current_active_user
 from services.logs.set_logs import set_logger
 from db import get_db
@@ -25,14 +27,13 @@ router = APIRouter()
 _logger = logging.getLogger(__name__)
 set_logger(_logger)
 
-@router.post("/create_groups")
-async def create_group(group:GroupCreate,db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
+@router.post("/create_groups", response_model = CommonResponseSuccess)
+async def create_group(group:GroupCreate, upload_file:UploadFile = File(None), db:Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
     """
     グループを作成する
     """
     _logger.info("Create group by {current_user.id}")
     try:
-        # グループ作成し、作成したグループのidを返す
         group_id = set_group(group,current_user,db)
         if not group_id:
             raise ApiException(
@@ -40,7 +41,24 @@ async def create_group(group:GroupCreate,db:Session = Depends(get_db),current_us
                 status="fail",
                 detail="group create error",
             )
-        
+        # グループに画像を設定する
+        path = None
+        if upload_file is not None:
+            s3 = boto3.client('s3',
+                aws_access_key_id=config.AWS_ACCESS_KEY,
+                aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
+                region_name=config.AWS_REGION
+            )
+
+            dt_now = datetime.now()
+            dt = dt_now.strftime('%Y%m%d%H%M%S')
+            filename = f"{group.title}_{dt}"
+            Bucket = "mahjong-group-image"
+            Key = f'group_image/{group_id}/{filename}'
+            s3.upload_file(filename, Bucket, Key)
+            path = f"https://{Bucket}.s3-{config.AWS_REGION}.amazonaws.com/{Key}"
+            #画像を設定する
+            update_group_image(group_id, path, db)
         #postしたユーザーのこのグループのプロフィールを作成する
         profile_id = set_profile(current_user, group_id, db)
         if not profile_id:
@@ -49,7 +67,7 @@ async def create_group(group:GroupCreate,db:Session = Depends(get_db),current_us
                 status="fail",
                 detail="profile create error",
             )
-        return group_id
+        return {"status": "ok"}
         
     except ApiException as e:
         db.rollback()
@@ -66,14 +84,14 @@ async def create_group(group:GroupCreate,db:Session = Depends(get_db),current_us
             )
     
 
-@router.put("/join_group")
+@router.put("/join_group", response_model = CommonResponseSuccess)
 def put_join_group(group_id:UUID,password:str,db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
     """
     グループに参加する
     """
     try:
         res = join_group(group_id,password,current_user.id,db)
-        return res
+        return {"status":"ok"}
     except ApiException as e:
         db.rollback()
         _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
@@ -88,14 +106,14 @@ def put_join_group(group_id:UUID,password:str,db:Session = Depends(get_db),curre
                 detail="BadRequest",
             )
 
-@router.put("/leave_group")
+@router.put("/leave_group", response_model = CommonResponseSuccess)
 def put_leave_group(group_id:UUID,db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
     """
     グループから離脱する
     """
     try:
         res = leave_group(group_id,current_user.id,db)
-        return res
+        return {"status":"ok"}
     except ApiException as e:
         db.rollback()
         _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")

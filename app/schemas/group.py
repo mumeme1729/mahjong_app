@@ -11,7 +11,6 @@ class GroupBase(BaseModel):
     title: Optional[str] = None
     password: Optional[str] = None
     text: Optional[str] = None
-    image: Optional[str] = None
     # created_at: datetime
     # update_at: datetime
 

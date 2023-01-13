@@ -18,6 +18,7 @@ class UserTable(Base):
     created_at = Column(TIMESTAMP,nullable=False)
     nick_name = Column(String(255))
     image = Column(String(255))
+    introduction = Column(String(1000))
     #所属しているグループ情報
 
     
