@@ -1,6 +1,5 @@
 from typing import Any
 from uuid import UUID
-import yaml
 import logging
 import requests
 import boto3
@@ -22,9 +21,6 @@ from services.logs.set_logs import set_logger
 from db import get_db
 
 router = APIRouter()
-
-with open('settings.yaml', 'r') as yml:
-    settings = yaml.safe_load(yml)
 
 #ログファイルを作成
 #ログファイルを作成

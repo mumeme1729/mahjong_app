@@ -22,7 +22,9 @@ def set_profile(user:User,group_id:UUID,db:Session):
                 created_at = dt,
                 update_at = dt,
                 group = group_id,
-                user = user.id
+                user = user.id,
+                rate4 = 1500,
+                rate3 = 1500
         )
 
         db.add(profile)
@@ -30,6 +32,16 @@ def set_profile(user:User,group_id:UUID,db:Session):
         return profile.id
     except Exception as e:
             raise e
+
+def update_profile_rate(db:Session):
+    """
+    レートを更新する
+    """
+    try:
+        db.commit()
+        return True
+    except Exception as e:
+        raise e
 
 def activate_profile(profile:ProfileTable,db:Session)->UUID:
     """

@@ -1,5 +1,5 @@
-from typing import Any, Optional
-import yaml
+
+from typing import Any
 import logging
 from schemas.response import CommonResponseSuccess
 import boto3
@@ -17,9 +17,6 @@ from services.authenticates.get_current_user import get_current_active_user
 from db import get_db
 
 router = APIRouter()
-
-with open('settings.yaml', 'r') as yml:
-    settings = yaml.safe_load(yml)
 
 #ログファイルを作成
 _logger = logging.getLogger(__name__)
