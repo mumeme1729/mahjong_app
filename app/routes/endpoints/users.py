@@ -1,5 +1,4 @@
 from typing import Any
-import yaml
 import logging
 from utils.errors import ApiException
 from fastapi import APIRouter, Depends
@@ -13,9 +12,6 @@ from services.authenticates.get_current_user import get_current_active_user
 from db import get_db
 
 router = APIRouter()
-
-with open('settings.yaml', 'r') as yml:
-    settings = yaml.safe_load(yml)
 
 #ログファイルを作成
 _logger = logging.getLogger(__name__)
@@ -86,7 +82,7 @@ async def read_users_me(current_user: User = Depends(get_current_active_user),db
         _logger.error(f"request failed. Error = {e}")
         db.rollback()
         raise ApiException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=400,
                 status="fail",
                 detail="BadRequest",
             )
@@ -116,7 +112,7 @@ def read_users(id:str,db:Session = Depends(get_db)) -> Any:
         _logger.error(f"request failed. Error = {e}")
         db.rollback()
         raise ApiException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=400,
                 status="fail",
                 detail="BadRequest",
             )

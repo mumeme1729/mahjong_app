@@ -1,5 +1,4 @@
 from typing import Any
-import yaml
 import logging
 import requests
 
@@ -19,9 +18,6 @@ from services.authenticates.create_access_token import create_access_token
 from db import get_db
 
 router = APIRouter()
-
-with open('settings.yaml', 'r') as yml:
-    settings = yaml.safe_load(yml)
 
 #ログファイルを作成
 _logger = logging.getLogger(__name__)

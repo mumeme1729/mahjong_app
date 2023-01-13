@@ -33,12 +33,13 @@ def set_profile(user:User,group_id:UUID,db:Session):
     except Exception as e:
             raise e
 
-def update_profile_rate(profile_id, is_sanma:bool, db:Session):
+def update_profile_rate(db:Session):
     """
     レートを更新する
     """
     try:
-        pass
+        db.commit()
+        return True
     except Exception as e:
         raise e
 
