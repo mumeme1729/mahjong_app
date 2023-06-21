@@ -123,3 +123,14 @@ def get_all_user_data(id: str,db: Session):
             raise e
 
 
+# sql_query = text('SELECT Rank, COUNT(*) AS RankCount FROM your_table GROUP BY Rank')
+
+# # クエリを実行し、結果を取得します
+# result = engine.execute(sql_query)
+
+
+# SELECT p.name, COUNT(*) AS total_games, SUM(s.score) AS total_score
+# FROM players p
+# JOIN scores s ON p.player_id = s.player_id
+# WHERE p.player_id = <ユーザーのID>
+# GROUP BY p.player_id;

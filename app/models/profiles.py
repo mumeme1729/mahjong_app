@@ -10,7 +10,8 @@ from db import ENGINE
 
 class ProfileTable(Base):
     """
-    ユーザーテーブル
+    プロフィールテーブル
+    グループごとに作成する
     """
     __tablename__ = 'profiles'
     __table_args__ = (UniqueConstraint('user','group'),{})
