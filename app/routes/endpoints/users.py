@@ -1,6 +1,8 @@
 
 from typing import Any
 import logging
+from services.cruds.user_crud import get_total_join_group_per_user
+from schemas.game_result import GrameGrade4
 from schemas.response import CommonResponseSuccess
 import boto3
 import config
@@ -10,7 +12,7 @@ from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy.orm import Session
 
 from schemas.user import User, UserUpdate
-from services.cruds.user_crud import get_all_user_data, update_user_crud
+from services.cruds.user_crud import update_user_crud
 from services.cruds.user_crud import get_all_users, get_user_by_id
 from services.logs.set_logs import set_logger
 from services.authenticates.get_current_user import get_current_active_user
@@ -29,52 +31,16 @@ async def read_users_me(current_user: User = Depends(get_current_active_user),db
     現在ログインしているユーザーを返す。
     """
     try:
-        user_data = get_all_user_data(current_user.id,db)
-        # ユーザーデータを加工する
-        nick_name:str = ""
-        image:str = ""
-        game_cnt:int = 0
-        rank1:int = 0
-        rank2:int = 0
-        rank3:int = 0
-        rank4:int = 0
-        score:int = 0
-        game_id = []
-        group = []
-        # return user_data
-
-        for i in range(len(user_data)):
-            # 最初のみ名前等を取得する
-            if i == 0:
-                nick_name = user_data[i]["UserTable"].nick_name
-                image = user_data[i]["UserTable"].image
-            if user_data[i]["ProfileTable"] is not None:
-                for game_results in user_data[i]["ProfileTable"].game_results:
-                    game_cnt += 1
-                    score += game_results.score
-                    if game_results.rank == 1:
-                        rank1 += 1
-                    elif game_results.rank == 2:
-                        rank2 += 1
-                    elif game_results.rank == 3:
-                        rank3 += 1
-                    else:
-                        rank4 +=1
-                    game_id.append(game_results.game)
-            if user_data[i]["GroupsTable"] is not None:
-                group.append(user_data[i]["GroupsTable"])
-        # 参加しているすべてのグループを取得
-
+        # ログインしているユーザー情報
+        user_info = get_user_by_id(current_user.id, db)
+        # ログインしているユーザーが参加しているグループ情報
+        group_info_list:list = get_total_join_group_per_user(current_user.id,db)
+       
         login_user ={
-            "nick_name":nick_name,
-            "image":image,
-            "rank1":rank1,
-            "rank2":rank2,
-            "rank3":rank3,
-            "rank4":rank4,
-            "score":score,
-            "game_cnt":game_cnt,
-            "group":group
+            "nick_name":user_info.nick_name,
+            "image":user_info.image,
+            "introduction":user_info.introduction,
+            "group":group_info_list
         }
         
         return login_user

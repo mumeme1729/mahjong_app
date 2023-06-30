@@ -78,6 +78,7 @@ async def create_group(group:GroupCreate= Depends(), upload_file: UploadFile = F
         raise e
 
     except Exception as e:
+        print(e)
         _logger.error(f"request failed. Error = {e}")
         db.rollback()
         raise ApiException(

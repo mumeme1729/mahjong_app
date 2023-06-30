@@ -150,8 +150,8 @@ def test_create_game_success():
             "group_id": group_id,
             "game_results": [
                 {
-                    "rank": 1,
-                    "score": 25000,
+                    "rank": 4,
+                    "score": 20000,
                     "game": None,
                     "profile": user2
                 },
@@ -162,13 +162,13 @@ def test_create_game_success():
                     "profile": user3
                 },
                 {
-                    "rank": 3,
-                    "score": 25000,
+                    "rank": 1,
+                    "score": 40000,
                     "game": None,
                     "profile": user4
                 },
                 {
-                    "rank": 4,
+                    "rank": 3,
                     "score": 20000,
                     "game": None,
                     "profile": user5

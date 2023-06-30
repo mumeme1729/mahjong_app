@@ -93,44 +93,28 @@ def get_user_by_id(id: str,db: Session) -> Optional[UserTable]:
             return db.query(UserTable).filter(UserTable.id == id).options(joinedload(UserTable.profiles)).first()
         except Exception as e:
             raise e
+        
 # ユーザーに関連するデータをすべて取得
-def get_all_user_data(id: str,db: Session):
+def get_total_join_group_per_user(user_id: str,db: Session)->List[dict]:
     """
-    ホーム表示用に必要なユーザーデータを取得する
-
-    ・ プロフィール(グループ)
-    ・ すべての対局記録
+    指定されたユーザーの全グループを返す
     """
-    # user = db.query(UserTable).\
-    #     options(joinedload(UserTable.profiles)).first()
-    
-    # play_data = db.query(ProfileTable,GameResultTable).\
-    #     outerjoin(GameResultTable,GameResultTable.profile == ProfileTable.id).all()
-
-    # user = db.query(UserTable,ProfileTable,GameResultTable).\
-    #     outerjoin(ProfileTable,ProfileTable.user == UserTable.id).\
-    #         outerjoin(GameResultTable,GameResultTable.profile == ProfileTable.id).\
-    #             filter(ProfileTable.is_active == True).all()
     try:
-        user = db.query(UserTable,ProfileTable,GroupsTable).\
-            outerjoin(ProfileTable,ProfileTable.user == UserTable.id).\
-                options(joinedload(ProfileTable.game_results)).\
-                    outerjoin(GroupsTable,ProfileTable.group == GroupsTable.id).\
-                    filter(ProfileTable.is_active == True,UserTable.id == id).all()
-            
-        return user
+        get_group_query = f"""
+            SELECT groups.* FROM users
+            JOIN profiles ON users.id = profiles.user
+            JOIN groups ON groups.id = profiles.group
+            WHERE users.id::text = '{user_id}' AND profiles.is_active = true;
+        """
+        group_info = db.execute(get_group_query)
+        group_info_list = []
+        for res in group_info:
+            result_dict = dict(res)
+            group_info_list.append(result_dict)
+        return group_info_list
+    
     except Exception as e:
             raise e
 
 
-# sql_query = text('SELECT Rank, COUNT(*) AS RankCount FROM your_table GROUP BY Rank')
 
-# # クエリを実行し、結果を取得します
-# result = engine.execute(sql_query)
-
-
-# SELECT p.name, COUNT(*) AS total_games, SUM(s.score) AS total_score
-# FROM players p
-# JOIN scores s ON p.player_id = s.player_id
-# WHERE p.player_id = <ユーザーのID>
-# GROUP BY p.player_id;

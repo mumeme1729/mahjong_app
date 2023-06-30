@@ -53,7 +53,13 @@ class User(UserInDBBase):
 #     """
 #     hashed_password:str
 
-
+class LoginUserSchema():
+    """
+    ホーム画面表示用ユーザーデータスキーマ
+    TODO
+    """
+    pass
+    
 
 
 

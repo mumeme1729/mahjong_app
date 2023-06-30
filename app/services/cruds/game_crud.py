@@ -75,7 +75,7 @@ def get_game_by_id(game_id:UUID,db:Session)->GamesTable:
 
 def get_recently_game(group_id,db:Session):
     """
-    指定したグループの直近のデータを取得
+    指定したグループの直近の対局記録を取得数する
     """
     try:
         game = db.query(GamesTable).\

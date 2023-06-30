@@ -138,13 +138,20 @@ def get_all_groups(db:Session)->List[GroupsTable]:
     """
     try:
         groups = db.query(GroupsTable).options(joinedload(GroupsTable.profiles)).options(joinedload(GroupsTable.games)).all()
+        # get_group_query = f"""
+        #     SELECT profiles.*, rates.rate4, rates.rate3 FROM profiles
+        #     JOIN rates ON profiles.id = rates.profile_id
+        #     WHERE profiles.group = '3ada6498-1e48-4e96-8603-925c18ecd3f9';
+        # """
+        # groups = db.execute(get_group_query)
         return groups
     except Exception as e:
+            print(e)
             raise e
 
 def get_selected_group(group_id:str,db:Session):
     """
-    選択したグループを返す
+    選択したグループの情報を返す
 
     """
     try:

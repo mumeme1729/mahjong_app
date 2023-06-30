@@ -21,21 +21,16 @@ class ProfileTable(Base):
     update_at = Column(TIMESTAMP,nullable=False)
     nick_name = Column(String(30))
     image = Column(String(255))
-    rate4 = Column(Integer, default=1500)
-    rate3 = Column(Integer, default=1800)
+
     introduction = Column(String(1000))
 
     #所属しているグループ情報
 
     # リレーション設定
-    # groups = relationship(
-    #     'GroupsTable',
-    #     secondary= profile_group_map_table,
-    #     back_populates='profiles'
-    # )
     group = Column(UUIDType(binary=False), ForeignKey('groups.id'))
     user = Column(UUIDType(binary=False), ForeignKey('users.id'))
     game_results = relationship("GameResultTable", backref="profiles")
+    rate = relationship("RateTable", backref="profiles")
     
 def main():
     # テーブルが存在しなければ、テーブルを作成
