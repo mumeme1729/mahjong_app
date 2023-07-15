@@ -7,13 +7,14 @@ class CommonResponseBase(BaseModel):
     """
     # email: Optional[EmailStr] = None
     status: Optional[str] = None
+    detail: Optional[str] = None
 
 class CommonResponseSuccess(CommonResponseBase):
     """
-    status OKだけを返す場合のスキーマ
+    status OKを返す場合のスキーマ
     """
     status: str
-
+    
 
 
 

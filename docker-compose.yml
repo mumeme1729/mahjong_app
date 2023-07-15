@@ -30,6 +30,7 @@ services:
         volumes:
             - ./docker/db/initdb.d:/docker-entrypoint-initdb.d
             - ./logs/db:/var/log/postgresql/
+            # - ./docker/db/data:/var/lib/postgresql/data/
         ports:
             - '5432:5432'
         networks: 

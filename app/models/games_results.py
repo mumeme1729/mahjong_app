@@ -18,6 +18,7 @@ class GameResultTable(Base):
     update_at = Column(TIMESTAMP,nullable=False)
     rank = Column(Integer,nullable=False)
     score = Column(Integer,nullable=False)
+    score_origin = Column(Integer,nullable=False)
     
     # リレーション設定
     game = Column(UUIDType(binary=False), ForeignKey('games.id'))

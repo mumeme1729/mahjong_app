@@ -31,6 +31,7 @@ class ProfileTable(Base):
     user = Column(UUIDType(binary=False), ForeignKey('users.id'))
     game_results = relationship("GameResultTable", backref="profiles")
     rate = relationship("RateTable", backref="profiles")
+    # rate = profile_id = Column(UUIDType(binary=False), ForeignKey('rates.id'))
     
 def main():
     # テーブルが存在しなければ、テーブルを作成

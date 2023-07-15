@@ -31,3 +31,26 @@ class Profile(ProfileInDBBase):
     """
     pass
 
+
+class ProfileBasicSchema(BaseModel):
+    """
+    profileの基本スキーマ
+    レートとランクを含める
+    """
+    id: str
+    is_active: bool
+    created_at: str
+    update_at: str
+    nick_name: str
+    image: str
+    introduction: str
+    group: str
+    user: str
+    rate4: int
+    rate3: int
+    rank_id: int
+    rank_name: str
+    point: int
+    init_point: int
+    pre_rank_id: int
+    next_rank_id: int

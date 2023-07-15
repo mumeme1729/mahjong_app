@@ -15,6 +15,7 @@ class GameCreate(GameBase):
     """
     group_id: UUID
     is_sanma: bool
+    date: str
     game_results:List[GameResultCreate]
 
 class GameUpdata(GameBase):

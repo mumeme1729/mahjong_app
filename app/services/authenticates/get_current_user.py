@@ -47,6 +47,7 @@ async def get_current_user(cred: HTTPAuthorizationCredentials=Depends(HTTPBearer
         try:
             decoded_token = auth.verify_id_token(cred.credentials)
         except Exception as err:
+
             raise ApiException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 status="fail",
@@ -77,7 +78,10 @@ async def get_current_user(cred: HTTPAuthorizationCredentials=Depends(HTTPBearer
                 detail=f"Invalid authentication credentials. {err}",
             )
         return user
+    except ApiException as e:
+        raise e
     except Exception as e:
+        print(f"エラー {e}")
         raise e
 
 

@@ -10,18 +10,19 @@ from db import ENGINE
 
 class RateTable(Base):
     """
-    対局結果テーブル
+    レートテーブル
     """
     __tablename__ = 'rates'
     id = Column(UUIDType(binary=False),primary_key=True,default=uuid4)
     created_at = Column(TIMESTAMP,nullable=False)
     update_at = Column(TIMESTAMP,nullable=False)
-    rate4 = Column(Integer, default=1500)
-    rate3 = Column(Integer, default=1800)
-    
+    rate4 = Column(Integer, default=0)
+    rate3 = Column(Integer, default=0)
+    rank_id = Column(Integer, default=10)
+
     # リレーション設定
     profile_id = Column(UUIDType(binary=False), ForeignKey('profiles.id'))
-
+    # profile = relationship("ProfileTable", backref="rates")
 
     
 def main():

@@ -8,6 +8,7 @@ class GameResultBase(BaseModel):
     """
     rank: Optional[int]
     score: Optional[int]
+    score_origin: Optional[int]
 
 class GameResultCreate(GameResultBase):
     """
@@ -15,6 +16,7 @@ class GameResultCreate(GameResultBase):
     """
     rank: int
     score: int
+    score_origin: int
     game: Optional[UUID]
     profile: str
 

@@ -1,8 +1,8 @@
 
 from typing import Any
 import logging
-from services.cruds.user_crud import get_total_join_group_per_user
-from schemas.game_result import GrameGrade4
+from schemas.user import UserUPdateProfiles
+from services.cruds.profile_crud import update_profile_by_user_id
 from schemas.response import CommonResponseSuccess
 import boto3
 import config
@@ -12,8 +12,7 @@ from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy.orm import Session
 
 from schemas.user import User, UserUpdate
-from services.cruds.user_crud import update_user_crud
-from services.cruds.user_crud import get_all_users, get_user_by_id
+from services.cruds.user_crud import get_all_users, get_user_by_id,update_user_crud,get_total_join_group_per_user
 from services.logs.set_logs import set_logger
 from services.authenticates.get_current_user import get_current_active_user
 from db import get_db
@@ -98,6 +97,7 @@ def update_user(update_info:UserUpdate= Depends(), upload_file:UploadFile = File
         # S3にUPロードする
         path = None
         if upload_file is not None:
+            print(upload_file.filename)
             s3 = boto3.client('s3',
                 aws_access_key_id=config.AWS_ACCESS_KEY,
                 aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
@@ -108,16 +108,29 @@ def update_user(update_info:UserUpdate= Depends(), upload_file:UploadFile = File
             dt = dt_now.strftime('%Y%m%d%H%M%S')
             filename = f"{current_user.id}_{dt}_{upload_file.filename}"
             Bucket = "mahjong-profile-image"
-            Key = f'user_image/{filename}'
+            Key = f'user_image/{current_user.id}/{filename}'
             s3.put_object(Body=upload_file.file, Bucket =Bucket, Key =Key)
             path = f"https://{Bucket}.s3-{config.AWS_REGION}.amazonaws.com/{Key}"
         #更新する
+        print(update_info)
         if update_info.nick_name is None:
             update_info.nick_name = current_user.nick_name
         if update_info.introduction is None:
             update_info.introduction = current_user.introduction
             
         update_user_crud(current_user, update_info, path,db)
+        update_profile_info =  UserUPdateProfiles(
+            nick_name=update_info.nick_name,
+            introduction= update_info.introduction,
+            image = path if upload_file is not None else current_user.image
+        )
+        # update_profile_info.nick_name = update_info.nick_name
+        # update_profile_info.introduction = update_info.introduction
+        # update_profile_info.image = path if upload_file is not None else current_user.image
+        # プロフィールも同時に更新する
+        print(update_profile_info)
+        update_profile_by_user_id(current_user, update_profile_info, db)
+    
         return {"status":"ok"}
     except ApiException as e:
         db.rollback()
@@ -125,6 +138,7 @@ def update_user(update_info:UserUpdate= Depends(), upload_file:UploadFile = File
         raise e
 
     except Exception as e:
+        print(e)
         _logger.error(f"request failed. Error = {e}")
         db.rollback()
         raise ApiException(

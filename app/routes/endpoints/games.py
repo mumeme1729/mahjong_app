@@ -32,99 +32,68 @@ router = APIRouter()
 _logger = logging.getLogger(__name__)
 set_logger(_logger)
 
-@router.post("/create_game", response_model = CommonResponseSuccess)
-async def create_game(game_data:GameCreate, db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user))->Any:
-    """
-    対局テーブルを作成する
-    """
-    try:
-        _logger.info(f"get current user : {current_user.id}")
-        # グループのチェック
-        group = get_group_by_id(game_data.group_id,db)
-        # グループが存在しない場合はBAD_REQUEST
-        if not group:
-            raise ApiException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    status="fail",
-                    detail=f"Group does not exist. : {game_data.group_id}",
-                )
-        # そのグループにPOSTしたユーザーが属しているか
-        # プロフィールを取得
-        profile = get_profile_by_user_and_group(current_user.id,group.id,db)
-        if profile is not None:
-            #そのプロフィールが有効かどうかチェック
-            if profile.is_active:
-                game_id = set_game(game_data,profile,db) #作成したゲームID
-                #対局作成後、対局結果を格納していく
-                #四麻か秋刀魚か判定
-                if not game_data.is_sanma:
-                    # 対局数をチェック
-                    if len(game_data.game_results) == 4:
-                        profiles = []
-                        for result in game_data.game_results:
-                            result.game = game_id
-                            #結果を格納する
-                            #TODO プロフィールチェック 
-                            prof = get_profile_by_profile_and_group(result.profile, group.id, db)
+def create_game_results(game_data:GameCreate, group_id, game_id, db, is_sanma):
+    if is_sanma:
+        expected_results_length = 3
+    else:
+        expected_results_length = 4
 
-                            if prof is None:
-                                # 対象のゲームを削除する
-                                delete_game(game_id,db)
-                                raise ApiException(
-                                    status_code=status.HTTP_400_BAD_REQUEST,
-                                    status="fail",
-                                    detail="Invalid game result Invalid profile",
-                                )
-                            gr = set_game_result(game_id,result,db)
-                            profiles.append(prof)
-                        #レート更新
-                        calc_rate_4(game_data, profiles, db)    
-                    
-                    else:
-                        # 対象のゲームを削除する
-                        delete_game(game_id,db)
-                        raise ApiException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            status="fail",
-                            detail="Illegal game result",
-                        )
-                else:
-                    # 秋刀魚
-                    if len(game_data.game_results) == 3:
-                        profiles = []
-                        #結果を格納する
-                        for result in game_data.game_results:
-                            result.game = game_id
-                            prof = get_profile_by_profile_and_group(result.profile, db)
-                            if prof is None:
-                                # 対象のゲームを削除する
-                                delete_game(game_id,db)
-                                raise ApiException(
-                                    status_code=status.HTTP_400_BAD_REQUEST,
-                                    status="fail",
-                                    detail="Invalid game result",
-                                )
-                            #結果を格納する
-                            gr = set_game_result(game_id,result,db)
-                            profiles.append(prof)
-                        #レート更新
-                        calc_rate_3(game_data, profiles, db)
-                    else:
-                        # 不正なため対象のゲームを削除する
-                        delete_game(game_id,db)
-                        raise ApiException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            status="fail",
-                            detail="Illegal game result",
-                        )
-
-                return {"status":"ok"}
-
+    if len(game_data.game_results) != expected_results_length:
+        delete_game(game_id, db)
         raise ApiException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            status="fail",
+            detail="Illegal game result",
+        )
+
+    profiles = []
+    for result in game_data.game_results:
+        result.game = game_id
+        prof = get_profile_by_profile_and_group(result.profile,group_id,db)
+
+        if prof is None:
+            delete_game(game_id, db)
+            raise ApiException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 status="fail",
-                detail="this user doesn't belong to this group.",
+                detail="Invalid game result",
             )
+        set_game_result(game_id, result, db)
+        profiles.append(prof)
+
+    return profiles
+
+
+@router.post("/create_game", response_model=CommonResponseSuccess)
+async def create_game(game_data: GameCreate, db: Session = Depends(get_db),
+                      current_user: User = Depends(get_current_active_user)) -> Any:
+    try:
+        group = get_group_by_id(game_data.group_id, db)
+        if not group:
+            raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail=f"Group does not exist. : {game_data.group_id}",
+            )
+
+        profile = get_profile_by_user_and_group(current_user.id, group.id, db)
+        if not profile or not profile.is_active:
+            raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="This user doesn't belong to this group or profile is not active.",
+            )
+
+        game_id = set_game(game_data, profile, db)
+        profiles = create_game_results(game_data, group.id,game_id, db, game_data.is_sanma)
+
+        try:
+            calc_rate_4(game_data, profiles, db)
+        except Exception as e:
+            delete_game(game_id, db)
+            raise e
+
+        return {"status": "ok"}
 
     except ApiException as e:
         db.rollback()
@@ -135,10 +104,10 @@ async def create_game(game_data:GameCreate, db:Session = Depends(get_db),current
         _logger.error(f"request failed. Error = {e}")
         db.rollback()
         raise ApiException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                status="fail",
-                detail="BadRequest",
-            )
+            status_code=status.HTTP_400_BAD_REQUEST,
+            status="fail",
+            detail="BadRequest",
+        )
 
 
 @router.delete("/delete_game", response_model = CommonResponseSuccess)

@@ -31,6 +31,14 @@ class UserUpdate(BaseModel):
     nick_name: Optional[str] = None
     introduction: Optional[str] = None
 
+class UserUPdateProfiles(UserUpdate):
+    """
+    ユーザーに紐づくプロフィールを更新する際のスキーマ
+    """
+    nick_name: str
+    introduction: str
+    image: str
+
 
 class UserInDBBase(UserBase):
     id: Optional[UUID] = None

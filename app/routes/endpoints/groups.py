@@ -2,6 +2,13 @@ from typing import Any, Optional, Union
 from uuid import UUID
 import logging
 import requests
+from services.cruds.game_crud import get_gams_within_specified_period
+from services.cruds.profile_crud import update_profile_rate
+from services.cruds.rank_crud import get_all_ranks
+from services.cruds.profile_crud import update_profile_by_user_id
+from services.cruds.profile_crud import get_profile_by_user_and_group
+from services.cruds.group_crud import get_profiles
+from services.cruds.game_crud import get_recently_game
 import boto3
 import config
 from datetime import datetime, timedelta
@@ -29,7 +36,7 @@ set_logger(_logger)
 
 
 
-@router.post("/create_groups", response_model = CommonResponseSuccess)
+@router.post("/create_groups")
 async def create_group(group:GroupCreate= Depends(), upload_file: UploadFile = File(None), db:Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
     """
     グループを作成する
@@ -70,7 +77,7 @@ async def create_group(group:GroupCreate= Depends(), upload_file: UploadFile = F
             path = f"https://{Bucket}.s3-{config.AWS_REGION}.amazonaws.com/{Key}"
             #画像を設定する
             update_group_image(group_id, path, db)
-        return {"status": "ok"}
+        return {"status": "ok", "detail": group_id}
         
     except ApiException as e:
         db.rollback()
@@ -154,8 +161,8 @@ def read_groups(db:Session = Depends(get_db)) -> Any:
                 detail="BadRequest",
             )
 
-@router.get("/get_selected_group")
-def get_group(group_id:str ,db:Session = Depends(get_db)):
+@router.get("/get_selected_group",)
+def get_group(group_id:str ,db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
     try:
         group = get_selected_group(group_id,db)
         return group
@@ -173,3 +180,140 @@ def get_group(group_id:str ,db:Session = Depends(get_db)):
                 detail="BadRequest",
             )
 
+@router.get("/get_selected_group_recently_games")
+def get_recently_games(group_id:str ,db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
+    try:
+        recently_games = get_recently_game(group_id,db)
+        return recently_games
+    except ApiException as e:
+        db.rollback()
+        _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
+        raise e
+
+    except Exception as e:
+        _logger.error(f"request failed. Error = {e}")
+        db.rollback()
+        raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="BadRequest",
+            )
+
+@router.get("/get_games_specified_period")
+def get_games_specified_period(group_id:str,date_from:str,date_until:str, db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
+    """
+    指定された期間の対局記録を取得する
+    """
+    try:
+        games = get_gams_within_specified_period(group_id,date_from,date_until,db)
+        return games
+    except ApiException as e:
+        db.rollback()
+        _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
+        raise e
+
+    except Exception as e:
+        _logger.error(f"request failed. Error = {e}")
+        db.rollback()
+        raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="BadRequest",
+            )
+
+
+@router.get("/profiles")
+def get_profiles_list(group_id:str, db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)) -> Any:
+    """
+    現在グループに属いている全プロフィールを取得
+    """
+    try:
+        groups = get_profiles(group_id,db)
+        return groups
+    except ApiException as e:
+        db.rollback()
+        _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
+        raise e
+
+    except Exception as e:
+        _logger.error(f"request failed. Error = {e}")
+        db.rollback()
+        raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="BadRequest",
+            )
+
+@router.get("/is_joind")
+def get_is_joind( db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)) -> Any:
+    """
+    グループに参加しているかどうか確認を行う
+    """
+    try:
+        profiles = update_profile_by_user_id(current_user, None, "", db)
+    
+        return profiles
+    except ApiException as e:
+        db.rollback()
+        _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
+        raise e
+
+    except Exception as e:
+        _logger.error(f"request failed. Error = {e}")
+        print(e)
+        db.rollback()
+        raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="BadRequest",
+            )
+    
+
+@router.get("/ranks")
+def get_ranks(db:Session = Depends(get_db)) -> Any:
+    """
+    ランクを取得する
+    """
+    try:
+        profiles = get_all_ranks(db)
+    
+        return profiles
+    except ApiException as e:
+        db.rollback()
+        _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
+        raise e
+
+    except Exception as e:
+        _logger.error(f"request failed. Error = {e}")
+        print(e)
+        db.rollback()
+        raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="BadRequest",
+            )
+    
+
+@router.get("/rank_table")
+def get_rank_table(profile_id:str, rank_id:int, db:Session = Depends(get_db)) -> Any:
+    """
+    ランクを取得する
+    """
+    try:
+        profiles = update_profile_rate(profile_id,rank_id,0,db)
+    
+        return profiles
+    except ApiException as e:
+        db.rollback()
+        _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
+        raise e
+
+    except Exception as e:
+        _logger.error(f"request failed. Error = {e}")
+        print(e)
+        db.rollback()
+        raise ApiException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="BadRequest",
+            )

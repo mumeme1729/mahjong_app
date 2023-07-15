@@ -7,6 +7,7 @@ from typing import List
 from uuid import UUID
 from sqlalchemy.orm.session import Session
 from sqlalchemy.orm import joinedload
+from models.profiles import ProfileTable
 from utils.errors import ApiException
 from services.cruds.game_crud import get_recently_game
 from services.cruds.profile_crud import dis_activate_profile
@@ -158,13 +159,47 @@ def get_selected_group(group_id:str,db:Session):
         group = db.query(GroupsTable).\
             options(joinedload(GroupsTable.profiles)).\
                 filter(GroupsTable.id == group_id).\
-                    all()
-        # 直近の対局記録
-        game = get_recently_game(group_id,db)
-        group.append({"Games":game})
-        
+                    first()        
         return group
     except Exception as e:
+        print(e)
+        raise e
+
+def get_profiles(group_id:str,db:Session):
+    """
+    選択したグループに参加しているユーザーのプロフィールを
+    返す
+    """
+    try:
+        query = f"""
+            SELECT 
+                profiles.*, 
+                rates.rate4, 
+                rates.rate3, 
+                rates.rank_id, 
+                ranks.rank_name, 
+                ranks.point, 
+                ranks.init_point,
+                ranks.pre_rank_id,
+                ranks.next_rank_id
+            FROM profiles
+            JOIN rates ON rates.profile_id = profiles.id
+            JOIN ranks ON rates.rank_id = ranks.id
+            WHERE profiles.group = '{group_id}'
+            ORDER BY rates.rate4 ASC;
+        """    
+        result = db.execute(query)
+        profiles = []
+        for res in result:
+            profiles.append(dict(res))
+        return profiles
+        # profiles = db.query(ProfileTable).\
+        #     options(joinedload(ProfileTable.rate)).\
+        #         filter(ProfileTable.group == group_id).\
+        #             all() 
+        return profiles
+    except Exception as e:
+        print(e)
         raise e
     
 ### DELETE ###
