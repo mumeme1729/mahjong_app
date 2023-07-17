@@ -71,7 +71,7 @@ async def create_group(group:GroupCreate= Depends(), upload_file: UploadFile = F
             dt_now = datetime.now()
             dt = dt_now.strftime('%Y%m%d%H%M%S')
             filename = f"{group.title}_{dt}_{upload_file.filename}"
-            Bucket = "mahjong-group-image"
+            Bucket = config.BUCKET_NAME
             Key = f'group_image/{group_id}/{filename}'
             s3.put_object(Body=upload_file.file, Bucket =Bucket, Key =Key)
             path = f"https://{Bucket}.s3-{config.AWS_REGION}.amazonaws.com/{Key}"
