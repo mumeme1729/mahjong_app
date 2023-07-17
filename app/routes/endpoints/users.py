@@ -107,7 +107,7 @@ def update_user(update_info:UserUpdate= Depends(), upload_file:UploadFile = File
             dt_now = datetime.now()
             dt = dt_now.strftime('%Y%m%d%H%M%S')
             filename = f"{current_user.id}_{dt}_{upload_file.filename}"
-            Bucket = "mahjong-profile-image"
+            Bucket = config.BUCKET_NAME
             Key = f'user_image/{current_user.id}/{filename}'
             s3.put_object(Body=upload_file.file, Bucket =Bucket, Key =Key)
             path = f"https://{Bucket}.s3-{config.AWS_REGION}.amazonaws.com/{Key}"
