@@ -35,9 +35,9 @@ class UserUPdateProfiles(UserUpdate):
     """
     ユーザーに紐づくプロフィールを更新する際のスキーマ
     """
-    nick_name: str
-    introduction: str
-    image: str
+    nick_name: Optional[str] = None
+    introduction: Optional[str] = None
+    image: Optional[str] = None
 
 
 class UserInDBBase(UserBase):
