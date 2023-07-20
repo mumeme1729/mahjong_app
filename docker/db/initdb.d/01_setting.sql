@@ -16,5 +16,5 @@ insert into ranks (id,rank_name,point,init_point, pre_rank_id,next_rank_id) valu
 insert into ranks (id,rank_name,point,init_point, pre_rank_id,next_rank_id) values (30,'雀傑',2000,1000,22,40);
 insert into ranks (id,rank_name,point,init_point, pre_rank_id,next_rank_id) values (40,'雀鬼',3000,1500,30,50);
 insert into ranks (id,rank_name,point,init_point, pre_rank_id,next_rank_id) values (50,'雀聖',4000,2000,40,60);
-insert into ranks (id,rank_name,point,init_point, pre_rank_id,next_rank_id) values (60,'雀神',2000000,1000000,50,-1);
+insert into ranks (id,rank_name,point,init_point, pre_rank_id,next_rank_id) values (60,'雀神',20000000,10000000,50,-1);
 

@@ -44,7 +44,6 @@ services:
             - fastapi
         ports:
             - "443:443"
-            - "80:80"
         volumes:
             - ./docker/nginx/conf.d:/etc/nginx/conf.d
             - ./docker/nginx/ssl:/etc/nginx/ssl
