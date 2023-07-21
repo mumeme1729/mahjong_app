@@ -40,3 +40,8 @@ class GroupInDB(GroupInDBBase):
     """
     pass
 
+class GroupInfoUpdate(GroupBase):
+    """
+    グループアップデート時のスキーマ
+    """
+    pass

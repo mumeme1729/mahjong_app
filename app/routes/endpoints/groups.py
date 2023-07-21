@@ -2,6 +2,8 @@ from typing import Any, Optional, Union
 from uuid import UUID
 import logging
 import requests
+from schemas.group import GroupInfoUpdate
+from services.cruds.group_crud import update_group
 from services.cruds.game_crud import get_gams_within_specified_period
 from services.cruds.profile_crud import update_profile_rate
 from services.cruds.rank_crud import get_all_ranks
@@ -314,6 +316,66 @@ def get_rank_table(profile_id:str, rank_id:int, db:Session = Depends(get_db)) ->
         db.rollback()
         raise ApiException(
                 status_code=status.HTTP_400_BAD_REQUEST,
+                status="fail",
+                detail="BadRequest",
+            )
+
+
+@router.put("/update_group")
+def update_user(group_id:str,update_info:GroupInfoUpdate= Depends(), upload_file:UploadFile = File(None), db:Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
+    """
+    グループ情報を更新する
+    """
+    try:
+        # 現在のgroup情報を取得
+        group = get_selected_group(group_id, db)
+        if group is None:
+            raise ApiException("group does not exist")
+        # S3にUPロードする
+        path = None
+        if upload_file is not None:
+            s3 = boto3.client('s3',
+                aws_access_key_id=config.AWS_ACCESS_KEY,
+                aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
+                region_name=config.AWS_REGION
+            )
+
+            dt_now = datetime.now()
+            dt = dt_now.strftime('%Y%m%d%H%M%S')
+            filename = f"{group.title}_{dt}_{upload_file.filename}"
+            Bucket = config.BUCKET_NAME
+            Key = f'group_image/{group_id}/{filename}'
+            s3.put_object(Body=upload_file.file, Bucket =Bucket, Key =Key)
+            path = f"https://{Bucket}.s3-{config.AWS_REGION}.amazonaws.com/{Key}"
+        #更新する
+        if update_info.title is None:
+            update_info.title = group.title
+        if update_info.text is None:
+            update_info.text = group.text
+        if update_info.password is None:
+            update_info.password = group.password
+            
+        update_group_info =  GroupInfoUpdate(
+            title=update_info.title,
+            text=update_info.text,
+            password=update_info.password,
+            image = path if upload_file is not None else group.image
+        )
+
+        res = update_group(group_id, update_group_info,path,db)
+        group = get_selected_group(group_id, db)
+        return group
+    except ApiException as e:
+        db.rollback()
+        _logger.warning(f"request failed. status_code = {e.status_code} detail = {e.detail}")
+        raise e
+
+    except Exception as e:
+        print(e)
+        _logger.error(f"request failed. Error = {e}")
+        db.rollback()
+        raise ApiException(
+                status_code=400,
                 status="fail",
                 detail="BadRequest",
             )

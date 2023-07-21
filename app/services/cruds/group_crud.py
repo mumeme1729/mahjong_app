@@ -7,6 +7,7 @@ from typing import List
 from uuid import UUID
 from sqlalchemy.orm.session import Session
 from sqlalchemy.orm import joinedload
+from schemas.group import GroupInfoUpdate
 from models.profiles import ProfileTable
 from utils.errors import ApiException
 from services.cruds.game_crud import get_recently_game
@@ -150,7 +151,7 @@ def get_all_groups(db:Session)->List[GroupsTable]:
             print(e)
             raise e
 
-def get_selected_group(group_id:str,db:Session):
+def get_selected_group(group_id:str,db:Session)->GroupsTable:
     """
     選択したグループの情報を返す
 
@@ -201,7 +202,25 @@ def get_profiles(group_id:str,db:Session):
     except Exception as e:
         print(e)
         raise e
-    
+
+def update_group(group_id: str, update_info:GroupInfoUpdate, path:str, db: Session) -> User:
+    """
+    ユーザーのデータを更新する
+    """
+    try:
+        group_table = get_selected_group(group_id, db)
+        if update_info.title is not None:
+            group_table.title = update_info.title
+        if update_info.text is not None:
+            group_table.text = update_info.text
+        if update_info.password is not None:
+            group_table.password = update_info.password
+        if path is not None:
+            group_table.image = path
+        db.commit()
+        return group_table
+    except Exception as e:
+            raise e
 ### DELETE ###
 def leave_group(group_id:UUID,user_id:UUID,db:Session)->UUID:
     """
