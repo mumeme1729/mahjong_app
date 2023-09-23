@@ -127,7 +127,6 @@ def get_gams_within_specified_period(group_id:str,date_from:str,date_until:str,d
             AND games.is_sanma = false
             AND games.created_at BETWEEN '{date_from}' AND '{date_until}'
             ORDER BY games.created_at DESC, gameresults.rank ASC
-            LIMIT 20
         """
         game_results = db.execute(get_recently_gameresult_query)
         game_results_dict:dict = {}
