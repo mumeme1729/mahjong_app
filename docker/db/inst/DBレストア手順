@@ -1,0 +1,8 @@
+1. 現在のテーブルのバックアップを取得
+   sudo docker exec mahjong_db_container pg_dumpall -U postgres > ファイル名
+
+2. 現在のテーブルを削除
+   DROP DATABASE IF EXISTS mahjong_db_container;
+
+3. レストア
+   sudo docker exec -i mahjong_db_container psql -U postgres -f docker-entrypoint-initdb.d/db_backup_20240107.sql
